@@ -1,0 +1,15 @@
+Add the current working directory to the load path
+#+begin_src elisp :results silent
+  (add-to-list 'load-path (expand-file-name "/home/max/repos/csharp-babel"))
+#+end_src
+
+Add the language to the loaded ones
+#+begin_src elisp :results silent
+  (add-to-list 'org-babel-load-languages '(csharp . t))
+#+end_src
+
+#+begin_src csharp :session none
+  testvalue
+#+end_src
+
+#+RESULTS:

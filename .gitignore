@@ -1,0 +1,4 @@
+*~
+*.elc
+dotnet/*
+ob-template.el

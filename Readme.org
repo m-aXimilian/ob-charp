@@ -1,0 +1,17 @@
+#+title: org-babel Support for C# source blocks
+
+* Handling Dotnet projects
+1. Create a simple-as-can-be project
+   #+begin_src sh
+     dotnet new console -n sample-project
+   #+end_src
+2. Run it
+   #+begin_src sh
+     cd sample-project
+     dotnet new console -n sample-project.csproj
+   #+end_src
+   
+* About org-babel
+Have a look at [[https://www.jstatsoft.org/article/view/v046i03][A Multi-Language Computing Environment for Literate Programming and Reproducible Research]] for the initial publication and [[https://orgmode.org/worg/org-contrib/babel/][this website]] for an entry point.
+
+
