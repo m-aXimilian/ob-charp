@@ -3,12 +3,13 @@
 * Handling Dotnet projects
 1. Create a simple-as-can-be project
    #+begin_src sh
-     dotnet new console -n sample-project
+     dotnet new console -n sample-project --use-program-main
    #+end_src
+   ~--use-program-main~ inhibits toplevel functions and adds a main function instead
 2. Run it
    #+begin_src sh
      cd sample-project
-     dotnet new console -n sample-project.csproj
+     dotnet run sample-project.csproj
    #+end_src
    
 * About org-babel
