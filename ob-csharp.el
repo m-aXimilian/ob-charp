@@ -82,24 +82,48 @@
 (add-to-list 'org-babel-tangle-lang-exts '("csharp" . "cs"))
 
 ;; optionally declare default header arguments for this language
-(defvar org-babel-default-header-args:csharp '())
+(defvar org-babel-default-header-args:csharp
+  '((main . :any)
+    (namespace . :any))
+  "Csharp specific header arguments.")
+
+(defcustom org-babel-csharp-compiler "dotnet")
 
 ;; This function expands the body of a source code block by doing things like
 ;; prepending argument definitions to the body, it should be called by the
 ;; `org-babel-execute:csharp' function below. Variables get concatenated in
 ;; the `mapconcat' form, therefore to change the formatting you can edit the
 ;; `format' form.
-(defun org-babel-expand-body:csharp (body params &optional processed-params)
-  "Expand BODY according to PARAMS, return the expanded body."
-  (require 'inf-csharp nil t)
-  (let ((vars (org-babel--get-vars (or processed-params (org-babel-process-params params)))))
-    (concat
-     (mapconcat ;; define any variables
-      (lambda (pair)
-        (format "%s=%S"
-                (car pair) (org-babel-csharp-var-to-csharp (cdr pair))))
-      vars "\n")
-     "\n" body "\n")))
+;; (defun org-babel-expand-body:csharp (body params &optional processed-params)
+;;   "Expand BODY according to PARAMS, return the expanded body."
+;;   (require 'inf-csharp nil t)
+;;   (let ((vars (org-babel--get-vars (or processed-params (org-babel-process-params params)))))
+;;     (concat
+;;      (mapconcat ;; define any variables
+;;       (lambda (pair)
+;;         (format "%s=%S"
+;;                 (car pair) (org-babel-csharp-var-to-csharp (cdr pair))))
+;;       vars "\n")
+;;      "\n" body "\n")))
+
+(defun org-babel-expand-body:csharp (body params processed-params)
+  (let* ((main-p (not (string= (cdr (assq :main params)) "no")))
+         (ns-param (cdr (assq :namespace params)))
+         (namespace (if ns-param
+                        ns-param
+                      (symbol-name (gensym)))))
+    (with-temp-buffer
+      (insert body)
+      (goto-char (point-min))
+      (insert "namespace "namespace ";\n\nclass Program\n{\n")
+      (when main-p
+        (insert "static void Main(string[] args)\n{\n"))
+      (goto-char (point-max))
+      (when main-p
+        (insert "\n}"))
+      (insert "\n}")
+      (buffer-string))
+    ))
 
 ;; This is the main function which is called to evaluate a code
 ;; block.
@@ -137,7 +161,27 @@ This function is called by `org-babel-execute-src-block'"
          (result-type (assq :result-type processed-params))
          ;; expand the body with `org-babel-expand-body:csharp'
          (full-body (org-babel-expand-body:csharp
-                     body params processed-params)))
+                     body params processed-params
+                     ))
+         (project-name (symbol-name (gensym)))
+         (base-dir (file-name-concat (file-truename ".") project-name))
+         (program-file (file-name-concat base-dir "Program.cs"))
+         (project-file (file-name-concat base-dir (concat project-name ".csproj"))))
+    (unless (file-exists-p base-dir)
+      (make-directory base-dir))
+    (with-temp-file program-file
+      (insert full-body))
+    (with-temp-file project-file
+      (insert "<Project Sdk=\"Microsoft.NET.Sdk\">"
+              "\n\n  <PropertyGroup>\n"
+              "\n    <OutputType>Exe</OutputType>"
+              "\n    <TargetFramework>net7.0</TargetFramework>"
+              "\n    <RootNamespace>" project-name "</RootNamespace>"
+              "\n    <ImplicitUsings>enable</ImplicitUsings>"
+              "\n    <Nullable>enable</Nullable>"
+              "\n  </PropertyGroup>"
+              "\n\n</Project>"))
+
     ;; actually execute the source-code block either in a session or
     ;; possibly by dropping it to a temporary file and evaluating the
     ;; file.

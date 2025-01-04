@@ -9,7 +9,26 @@ Add the language to the loaded ones
 #+end_src
 
 #+begin_src csharp :session none
-  testvalue
+  int myInt = 1;
+  var myString = $"this is myInt {myInt}";
+
+  Console.WriteLine(myString);
 #+end_src
 
 #+RESULTS:
+
+
+#+begin_src C++ :includes '(<iostream>)
+  std::cout << "hello\n";
+#+end_src
+
+#+RESULTS:
+: hello
+
+
+#+begin_src java
+  System.out.println("Console is: " + System.console());
+#+end_src
+
+#+RESULTS:
+: Console is: java.io.ProxyingConsole@36d4b5c
