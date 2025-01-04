@@ -8,14 +8,14 @@ Add the language to the loaded ones
   (add-to-list 'org-babel-load-languages '(csharp . t))
 #+end_src
 
-#+begin_src csharp :session none :project "vaffan" :namespace "wow"
+#+begin_src csharp :session none :project "compiledvaffan" :namespace "wow"
   int myInt = 1;
   var myString = $"this is myInt {myInt}";
-
   Console.WriteLine(myString);
 #+end_src
 
 #+RESULTS:
+: this is myInt 1
 
 
 #+begin_src C++ :includes '(<iostream>)

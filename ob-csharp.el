@@ -89,7 +89,8 @@
     (namespace))
   "Csharp specific header arguments.")
 
-(defcustom org-babel-csharp-compiler "dotnet")
+(defcustom org-babel-csharp-compiler "dotnet"
+  "The program to call for compiling a csharp project.")
 
 ;; This function expands the body of a source code block by doing things like
 ;; prepending argument definitions to the body, it should be called by the
@@ -170,8 +171,15 @@ This function is called by `org-babel-execute-src-block'"
          (project-name (alist-get :project params))
          (namespace (alist-get :namespace params))
          (base-dir (file-name-concat (file-truename ".") project-name))
+         (bin-dir (file-name-concat base-dir "bin"))
          (program-file (file-name-concat base-dir "Program.cs"))
-         (project-file (file-name-concat base-dir (concat project-name ".csproj"))))
+         (project-file (file-name-concat base-dir (concat project-name ".csproj")))
+         (compile-cmd (concat org-babel-csharp-compiler " " "build" " " "--output" " " bin-dir " " (file-truename base-dir)
+                      ;; " "
+                      ;; "&&" " "
+                      ;; (file-truename (file-name-concat bin-dir project-name))
+                              ))
+         (run-cmd (file-truename (file-name-concat bin-dir project-name))))
     (unless (file-exists-p base-dir)
       (make-directory base-dir))
     (with-temp-file program-file
@@ -186,7 +194,11 @@ This function is called by `org-babel-execute-src-block'"
               "\n    <Nullable>enable</Nullable>"
               "\n  </PropertyGroup>"
               "\n\n</Project>"))
-
+    (org-babel-eval compile-cmd "")
+    (let ((results (org-babel-eval run-cmd "")))
+      (when results
+        (setq results (org-remove-indentation results)))
+      results)
     ;; actually execute the source-code block either in a session or
     ;; possibly by dropping it to a temporary file and evaluating the
     ;; file.
