@@ -8,7 +8,7 @@ Add the language to the loaded ones
   (add-to-list 'org-babel-load-languages '(csharp . t))
 #+end_src
 
-#+begin_src csharp :session none
+#+begin_src csharp :session none :project "vaffan" :namespace "wow"
   int myInt = 1;
   var myString = $"this is myInt {myInt}";
 

@@ -1,4 +1,4 @@
-;;; ob-csharp.el --- org-babel functions for csharp evaluation
+;;; ob-csharp.el --- org-babel functions for csharp evaluation -*- lexical-binding: t -*-
 
 ;; Copyright (C) your name here
 
@@ -84,7 +84,9 @@
 ;; optionally declare default header arguments for this language
 (defvar org-babel-default-header-args:csharp
   '((main . :any)
-    (namespace . :any))
+    (namespace . :any)
+    (project . :any)
+    (namespace))
   "Csharp specific header arguments.")
 
 (defcustom org-babel-csharp-compiler "dotnet")
@@ -108,10 +110,7 @@
 
 (defun org-babel-expand-body:csharp (body params processed-params)
   (let* ((main-p (not (string= (cdr (assq :main params)) "no")))
-         (ns-param (cdr (assq :namespace params)))
-         (namespace (if ns-param
-                        ns-param
-                      (symbol-name (gensym)))))
+         (namespace (alist-get :namespace params)))
     (with-temp-buffer
       (insert body)
       (goto-char (point-min))
@@ -148,6 +147,11 @@
   "Execute a block of Csharp code with org-babel.
 This function is called by `org-babel-execute-src-block'"
   (message "executing Csharp source code block")
+  ;; check if we have a project name and a namespace set; add a random one if it is not present
+  (unless (assoc :project params)
+    (push `(:project . ,(symbol-name (gensym))) params))
+  (unless (assoc :namespace params)
+    (push `(:namespace . ,(symbol-name (gensym))) params))
   (let* ((processed-params (org-babel-process-params params))
          ;; set the session if the value of the session keyword is not the
          ;; string `none'
@@ -163,7 +167,8 @@ This function is called by `org-babel-execute-src-block'"
          (full-body (org-babel-expand-body:csharp
                      body params processed-params
                      ))
-         (project-name (symbol-name (gensym)))
+         (project-name (alist-get :project params))
+         (namespace (alist-get :namespace params))
          (base-dir (file-name-concat (file-truename ".") project-name))
          (program-file (file-name-concat base-dir "Program.cs"))
          (project-file (file-name-concat base-dir (concat project-name ".csproj"))))
@@ -176,7 +181,7 @@ This function is called by `org-babel-execute-src-block'"
               "\n\n  <PropertyGroup>\n"
               "\n    <OutputType>Exe</OutputType>"
               "\n    <TargetFramework>net7.0</TargetFramework>"
-              "\n    <RootNamespace>" project-name "</RootNamespace>"
+              "\n    <RootNamespace>" namespace "</RootNamespace>"
               "\n    <ImplicitUsings>enable</ImplicitUsings>"
               "\n    <Nullable>enable</Nullable>"
               "\n  </PropertyGroup>"
