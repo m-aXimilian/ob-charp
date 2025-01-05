@@ -47,26 +47,30 @@
   '((main . :any)
     (namespace . :any)
     (project . :any)
+    (project-type . :any)
     (namespace)
     (class :any)
-    (references :any))
+    (references :any)
+    (usings :any))
   "Csharp specific header arguments.")
 
 (defcustom org-babel-csharp-compiler "dotnet"
   "The program to call for compiling a csharp project.")
 
-(defcustom org-babel-csharp-project-format-string
-  "<Project Sdk=\"Microsoft.NET.Sdk\">
-\n  %s
-\n  <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>net7.0</TargetFramework>
-    <RootNamespace>%s</RootNamespace>
+(defun org-babel--parse-project-file (refs type namespace)
+  "Construct a csproj file from a list of REFS based on the project TYPE with the root NAMESPACE."
+  (concat "<Project Sdk=\"Microsoft.NET.Sdk\">\n\n  "
+          (when refs
+            (org-babel--csharp-parse-refs refs))
+          "\n\n  <PropertyGroup>"
+          (unless (equal type "class")
+            (format "\n    <OutputType>Exe</OutputType>
+    <RootNamespace>%s</RootNamespace>" namespace))
+    "\n    <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
-\n</Project>"
-  "A format string creating a csproj-file.")
+\n</Project>"))
 
 (defun org-babel--csharp-preprocess-params (params)
   "Make sure PARAMS contains a cons-cell for  both `:project' and `:namespace'."
@@ -76,28 +80,46 @@
     (push `(:namespace . ,(symbol-name (gensym))) params))
   params)
 
+(defun org-babel--csharp-parse-usings (usings)
+  (let ((usinglist))
+    (dolist (using usings)
+      (setf usinglist (concat usinglist (format "using %s;\n" using))))
+    usinglist))
+
 (defun org-babel-expand-body:csharp (body params ;; processed-params
                                           )
   (let* ((main-p (not (string= (cdr (assq :main params)) "no")))
+         (class-tmp (alist-get :class params))
+         (class (pcase class-tmp
+                  ("no" nil) ;; class explicitly
+                  (`nil "Program")
+                  (t class-tmp)))
          (params (org-babel--csharp-preprocess-params params))
-         (namespace (alist-get :namespace params)))
+         (namespace (alist-get :namespace params))
+         (usings (alist-get :usings params)))
     (with-temp-buffer
-      (insert body)
-      (goto-char (point-min))
-      (insert "namespace "namespace ";\n\nclass Program\n{\n")
+      (insert "namespace " namespace ";\n")
+      (when usings
+        (insert (format "\n%s\n" (org-babel--csharp-parse-usings usings))))
+      (when class
+        (insert "\nclass " class "\n{\n"))
       (when main-p
         (insert "static void Main(string[] args)\n{\n"))
-      (goto-char (point-max))
+      (let ((start (point)))
+        (insert body))
       (when main-p
         (insert "\n}"))
-      (insert "\n}")
-      (buffer-string))
-    ))
+      (when class
+        (insert "\n}"))
+      (buffer-string))))
 
 (defun org-babel--csharp-parse-refs (refs)
   (let ((itemgroup "<ItemGroup>"))
     (dolist (ref refs)
-      (setf itemgroup (concat itemgroup (format "\n    <ProjectReference Include=\"%s\" />" (file-truename ref)))))
+      (let ((full-ref (file-truename ref)))
+        (unless (file-exists-p full-ref)
+          (error (format "Reference %S not found" full-ref)))
+      (setf itemgroup (concat itemgroup (format "\n    <ProjectReference Include=\"%s\" />" full-ref)))))
     (concat itemgroup "\n  </ItemGroup>")))
 
 (defun org-babel-execute:csharp (body params)
@@ -110,7 +132,6 @@ This function is called by `org-babel-execute-src-block'"
          (vars (org-babel--get-vars processed-params))
          (result-params (assq :result-params processed-params))
          (result-type (assq :result-type processed-params))
-         ;; expand the body with `org-babel-expand-body:csharp'
          (full-body (org-babel-expand-body:csharp
                      body params ;; processed-params
                      ))
@@ -120,6 +141,7 @@ This function is called by `org-babel-execute-src-block'"
          (bin-dir (file-name-concat base-dir "bin"))
          (program-file (file-name-concat base-dir "Program.cs"))
          (project-file (file-name-concat base-dir (concat project-name ".csproj")))
+         (project-type (alist-get :project-type params))
          (compile-cmd (concat org-babel-csharp-compiler " " "build" " " "--output" " " bin-dir " " (file-truename base-dir)))
          (run-cmd (file-truename (file-name-concat bin-dir project-name))))
     (unless (file-exists-p base-dir)
@@ -127,14 +149,13 @@ This function is called by `org-babel-execute-src-block'"
     (with-temp-file program-file
       (insert full-body))
     (with-temp-file project-file
-      (insert (format org-babel-csharp-project-format-string
-                      (let ((refs (alist-get :references params)))
-                        (if refs
-                            (org-babel--csharp-parse-refs refs)
-                          ""))
-                      namespace)))
+      (insert
+       (let ((refs (alist-get :references params)))
+         (org-babel--parse-project-file refs project-type namespace))))
+    (message compile-cmd)
     (org-babel-eval compile-cmd "")
-    (let ((results (org-babel-eval run-cmd "")))
+    (let ((results (unless (string= project-type "class")
+                     (org-babel-eval run-cmd ""))))
       (when results
         (setq results (org-remove-indentation results))
         results))))

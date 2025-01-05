@@ -16,10 +16,23 @@ Add the language to the loaded ones
 
 #+RESULTS:
 : this is myInt 1
-: this is myInt 1
 
 
-#+begin_src csharp :main "no" :references '("./compiledvaffan/compiledvaffan.csproj")
+#+begin_src csharp :main "no" :class "no" :project "external-test" :namespace "oha" :project-type "class"
+  public class Printer
+  {
+      static public void WriteInt(int writeInt)
+      {
+          Console.WriteLine(writeInt);
+      }
+  }
+#+end_src
+
+#+RESULTS:
+
+
+
+#+begin_src csharp :main "no" :references '( "./external-test/external-test.csproj") :class "Prog" :usings '("oha")
   internal interface ITest
   {
       public int MyInt { get; set; }
@@ -46,14 +59,17 @@ Add the language to the loaded ones
   public static void Main(string[] args)
   {
       TestClass myTest = new TestClass();
-      Console.WriteLine(myTest.MyInt);
+      Printer.WriteInt(myTest.MyInt);
   }
 #+end_src
 
 #+RESULTS:
 : 17
-: 17
 
+#+begin_src csharp 
+  var test = "String";
+  Console.WriteLine(test);
+#+end_src
 
 
 * others
