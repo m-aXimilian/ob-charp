@@ -1,8 +1,8 @@
 ;;; ob-csharp.el --- org-babel functions for csharp evaluation -*- lexical-binding: t -*-
 
-;; Copyright (C) your name here
+;; Copyright (C) Maximilian Kueffner
 
-;; Author: your name here
+;; Author: Maximilian Kueffner
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: https://orgmode.org
 ;; Version: 0.01
@@ -26,50 +26,11 @@
 
 ;;; Commentary:
 
-;; This file is not intended to ever be loaded by org-babel, rather it is a
-;; template for use in adding new language support to Org-babel. Good first
-;; steps are to copy this file to a file named by the language you are adding,
-;; and then use `query-replace' to replace all strings of "template" in this
-;; file with the name of your new language.
-
-;; After the `query-replace' step, it is recommended to load the file and
-;; register it to org-babel either via the customize menu, or by evaluating the
-;; line: (add-to-list 'org-babel-load-languages '(template . t)) where
-;; `template' should have been replaced by the name of the language you are
-;; implementing (note that this applies to all occurrences of 'template' in this
-;; file).
-
-;; After that continue by creating a simple code block that looks like e.g.
-;;
-;; #+begin_src template
-
-;; test
-
-;; #+end_src
-
-;; Finally you can use `edebug' to instrumentalize
-;; `org-babel-expand-body:csharp' and continue to evaluate the code block. You
-;; try to add header keywords and change the body of the code block and
-;; reevaluate the code block to observe how things get handled.
-
-;;
-;; If you have questions as to any of the portions of the file defined
-;; below please look to existing language support for guidance.
-;;
-;; If you are planning on adding a language to org-babel we would ask
-;; that if possible you fill out the FSF copyright assignment form
-;; available at https://orgmode.org/request-assign-future.txt as this
-;; will make it possible to include your language support in the core
-;; of Org-mode, otherwise unassigned language support files can still
-;; be included in the contrib/ directory of the Org-mode repository.
-
-
 ;;; Requirements:
 
-;; Use this section to list the requirements of this language.  Most
-;; languages will require that at least the language be installed on
-;; the user's system, and the Emacs major mode relevant to the
-;; language be installed as well.
+;; Some .NET runtime environment should be installed.
+;; The `dotnet' command should be available to the system's environment
+;; (PATH discoverable for example).
 
 ;;; Code:
 (require 'ob)
@@ -86,11 +47,24 @@
   '((main . :any)
     (namespace . :any)
     (project . :any)
-    (namespace))
+    (namespace)
+    (class :any))
   "Csharp specific header arguments.")
 
-(defcustom org-babel-csharp-compiler "dotnet"
+(defcustom org-babel-csharp-compiler "botnet"
   "The program to call for compiling a csharp project.")
+
+(defcustom org-babel-csharp-project-format-string
+  "<Project Sdk=\"Microsoft.NET.Sdk\">
+\n  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net7.0</TargetFramework>
+    <RootNamespace>%s</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+\n</Project>"
+  "A format string creating a csproj-file.")
 
 (defun org-babel--csharp-preprocess-params (params)
   "Make sure PARAMS contains a cons-cell for  both `:project' and `:namespace'."
@@ -100,22 +74,6 @@
     (push `(:namespace . ,(symbol-name (gensym))) params))
   params)
 
-;; This function expands the body of a source code block by doing things like
-;; prepending argument definitions to the body, it should be called by the
-;; `org-babel-execute:csharp' function below. Variables get concatenated in
-;; the `mapconcat' form, therefore to change the formatting you can edit the
-;; `format' form.
-;; (defun org-babel-expand-body:csharp (body params &optional processed-params)
-;;   "Expand BODY according to PARAMS, return the expanded body."
-;;   (require 'inf-csharp nil t)
-;;   (let ((vars (org-babel--get-vars (or processed-params (org-babel-process-params params)))))
-;;     (concat
-;;      (mapconcat ;; define any variables
-;;       (lambda (pair)
-;;         (format "%s=%S"
-;;                 (car pair) (org-babel-csharp-var-to-csharp (cdr pair))))
-;;       vars "\n")
-;;      "\n" body "\n")))
 (defun org-babel-expand-body:csharp (body params ;; processed-params
                                           )
   (let* ((main-p (not (string= (cdr (assq :main params)) "no")))
@@ -134,25 +92,6 @@
       (buffer-string))
     ))
 
-;; This is the main function which is called to evaluate a code
-;; block.
-;;
-;; This function will evaluate the body of the source code and
-;; return the results as emacs-lisp depending on the value of the
-;; :results header argument
-;; - output means that the output to STDOUT will be captured and
-;;   returned
-;; - value means that the value of the last statement in the
-;;   source code block will be returned
-;;
-;; The most common first step in this function is the expansion of the
-;; PARAMS argument using `org-babel-process-params'.
-;;
-;; Please feel free to not implement options which aren't appropriate
-;; for your language (e.g. not all languages support interactive
-;; "session" evaluation).  Also you are free to define any new header
-;; arguments which you feel may be useful -- all header arguments
-;; specified by the user will be available in the PARAMS variable.
 (defun org-babel-execute:csharp (body params)
   "Execute a block of Csharp code with org-babel.
 This function is called by `org-babel-execute-src-block'"
@@ -160,15 +99,8 @@ This function is called by `org-babel-execute-src-block'"
   (org-babel--csharp-preprocess-params params)
   (let* ((processed-params (org-babel-process-params params))
          (params (org-babel--csharp-preprocess-params params))
-         ;; set the session if the value of the session keyword is not the
-         ;; string `none'
-         ;; (session (unless (string= value "none")
-         ;;           (org-babel-csharp-initiate-session
-         ;;            (cdr (assq :session processed-params)))))
-         ;; variables assigned for use in the block
          (vars (org-babel--get-vars processed-params))
          (result-params (assq :result-params processed-params))
-         ;; either OUTPUT or VALUE which should behave as described above
          (result-type (assq :result-type processed-params))
          ;; expand the body with `org-babel-expand-body:csharp'
          (full-body (org-babel-expand-body:csharp
@@ -180,46 +112,19 @@ This function is called by `org-babel-execute-src-block'"
          (bin-dir (file-name-concat base-dir "bin"))
          (program-file (file-name-concat base-dir "Program.cs"))
          (project-file (file-name-concat base-dir (concat project-name ".csproj")))
-         (compile-cmd (concat org-babel-csharp-compiler " " "build" " " "--output" " " bin-dir " " (file-truename base-dir)
-                      ;; " "
-                      ;; "&&" " "
-                      ;; (file-truename (file-name-concat bin-dir project-name))
-                              ))
+         (compile-cmd (concat org-babel-csharp-compiler " " "build" " " "--output" " " bin-dir " " (file-truename base-dir)))
          (run-cmd (file-truename (file-name-concat bin-dir project-name))))
     (unless (file-exists-p base-dir)
       (make-directory base-dir))
     (with-temp-file program-file
       (insert full-body))
     (with-temp-file project-file
-      (insert "<Project Sdk=\"Microsoft.NET.Sdk\">"
-              "\n\n  <PropertyGroup>\n"
-              "\n    <OutputType>Exe</OutputType>"
-              "\n    <TargetFramework>net7.0</TargetFramework>"
-              "\n    <RootNamespace>" namespace "</RootNamespace>"
-              "\n    <ImplicitUsings>enable</ImplicitUsings>"
-              "\n    <Nullable>enable</Nullable>"
-              "\n  </PropertyGroup>"
-              "\n\n</Project>"))
+      (insert (format org-babel-csharp-project-format-string namespace)))
     (org-babel-eval compile-cmd "")
     (let ((results (org-babel-eval run-cmd "")))
       (when results
         (setq results (org-remove-indentation results))
-        results))
-    ;; actually execute the source-code block either in a session or
-    ;; possibly by dropping it to a temporary file and evaluating the
-    ;; file.
-    ;; 
-    ;; for session based evaluation the functions defined in
-    ;; `org-babel-comint' will probably be helpful.
-    ;;
-    ;; for external evaluation the functions defined in
-    ;; `org-babel-eval' will probably be helpful.
-    ;;
-    ;; when forming a shell command, or a fragment of code in some
-    ;; other language, please preprocess any file names involved with
-    ;; the function `org-babel-process-file-name'. (See the way that
-    ;; function is used in the language files)
-    ))
+        results))))
 
 ;; This function should be used to assign any variables in params in
 ;; the context of the session environment.

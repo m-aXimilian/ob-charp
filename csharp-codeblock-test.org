@@ -14,19 +14,50 @@ Add the language to the loaded ones
   Console.WriteLine(myString);
 #+end_src
 
-#+begin_src csharp
-  int teost = 1;
+#+RESULTS:
+: this is myInt 1
+
+#+begin_src csharp :main "no"
+  internal interface ITest
+  {
+      public int MyInt { get; set; }
+  }
+
+  internal interface IStringTest
+  {
+      public string MyString { get; set; }
+  }
+
+  internal class TestClass : ITest, IStringTest
+  {
+      public TestClass()
+      {
+          this.MyInt = 17;
+          this.MyString = "My Integer ";
+      }
+
+      public int MyInt { get; set; }
+
+      public string MyString { get; set; }
+  }
+
+  public static void Main(string[] args)
+  {
+      TestClass myTest = new TestClass();
+      Console.WriteLine(myTest.MyInt);
+  }
 #+end_src
 
 #+RESULTS:
+: 17
 
 * others
 #+begin_src C++ :includes '(<iostream>)
   std::cout << "hello\n";
+  int yo = "fail";y
 #+end_src
 
 #+RESULTS:
-: hello
 
 
 #+begin_src java
