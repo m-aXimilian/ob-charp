@@ -92,6 +92,14 @@
 (defcustom org-babel-csharp-compiler "dotnet"
   "The program to call for compiling a csharp project.")
 
+(defun org-babel--csharp-preprocess-params (params)
+  "Make sure PARAMS contains a cons-cell for  both `:project' and `:namespace'."
+  (unless (assoc :project params)
+    (push `(:project . ,(symbol-name (gensym))) params))
+  (unless (assoc :namespace params)
+    (push `(:namespace . ,(symbol-name (gensym))) params))
+  params)
+
 ;; This function expands the body of a source code block by doing things like
 ;; prepending argument definitions to the body, it should be called by the
 ;; `org-babel-execute:csharp' function below. Variables get concatenated in
@@ -108,9 +116,10 @@
 ;;                 (car pair) (org-babel-csharp-var-to-csharp (cdr pair))))
 ;;       vars "\n")
 ;;      "\n" body "\n")))
-
-(defun org-babel-expand-body:csharp (body params processed-params)
+(defun org-babel-expand-body:csharp (body params ;; processed-params
+                                          )
   (let* ((main-p (not (string= (cdr (assq :main params)) "no")))
+         (params (org-babel--csharp-preprocess-params params))
          (namespace (alist-get :namespace params)))
     (with-temp-buffer
       (insert body)
@@ -148,12 +157,9 @@
   "Execute a block of Csharp code with org-babel.
 This function is called by `org-babel-execute-src-block'"
   (message "executing Csharp source code block")
-  ;; check if we have a project name and a namespace set; add a random one if it is not present
-  (unless (assoc :project params)
-    (push `(:project . ,(symbol-name (gensym))) params))
-  (unless (assoc :namespace params)
-    (push `(:namespace . ,(symbol-name (gensym))) params))
+  (org-babel--csharp-preprocess-params params)
   (let* ((processed-params (org-babel-process-params params))
+         (params (org-babel--csharp-preprocess-params params))
          ;; set the session if the value of the session keyword is not the
          ;; string `none'
          ;; (session (unless (string= value "none")
@@ -166,7 +172,7 @@ This function is called by `org-babel-execute-src-block'"
          (result-type (assq :result-type processed-params))
          ;; expand the body with `org-babel-expand-body:csharp'
          (full-body (org-babel-expand-body:csharp
-                     body params processed-params
+                     body params ;; processed-params
                      ))
          (project-name (alist-get :project params))
          (namespace (alist-get :namespace params))
@@ -197,8 +203,8 @@ This function is called by `org-babel-execute-src-block'"
     (org-babel-eval compile-cmd "")
     (let ((results (org-babel-eval run-cmd "")))
       (when results
-        (setq results (org-remove-indentation results)))
-      results)
+        (setq results (org-remove-indentation results))
+        results))
     ;; actually execute the source-code block either in a session or
     ;; possibly by dropping it to a temporary file and evaluating the
     ;; file.

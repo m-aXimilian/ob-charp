@@ -14,10 +14,13 @@ Add the language to the loaded ones
   Console.WriteLine(myString);
 #+end_src
 
+#+begin_src csharp
+  int teost = 1;
+#+end_src
+
 #+RESULTS:
-: this is myInt 1
 
-
+* others
 #+begin_src C++ :includes '(<iostream>)
   std::cout << "hello\n";
 #+end_src
