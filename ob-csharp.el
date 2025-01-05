@@ -48,7 +48,8 @@
     (namespace . :any)
     (project . :any)
     (namespace)
-    (class :any))
+    (class :any)
+    (references :any))
   "Csharp specific header arguments.")
 
 (defcustom org-babel-csharp-compiler "dotnet"
@@ -56,6 +57,7 @@
 
 (defcustom org-babel-csharp-project-format-string
   "<Project Sdk=\"Microsoft.NET.Sdk\">
+\n  %s
 \n  <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net7.0</TargetFramework>
@@ -92,6 +94,12 @@
       (buffer-string))
     ))
 
+(defun org-babel--csharp-parse-refs (refs)
+  (let ((itemgroup "<ItemGroup>"))
+    (dolist (ref refs)
+      (setf itemgroup (concat itemgroup (format "\n    <ProjectReference Include=\"%s\" />" (file-truename ref)))))
+    (concat itemgroup "\n  </ItemGroup>")))
+
 (defun org-babel-execute:csharp (body params)
   "Execute a block of Csharp code with org-babel.
 This function is called by `org-babel-execute-src-block'"
@@ -119,7 +127,12 @@ This function is called by `org-babel-execute-src-block'"
     (with-temp-file program-file
       (insert full-body))
     (with-temp-file project-file
-      (insert (format org-babel-csharp-project-format-string namespace)))
+      (insert (format org-babel-csharp-project-format-string
+                      (let ((refs (alist-get :references params)))
+                        (if refs
+                            (org-babel--csharp-parse-refs refs)
+                          ""))
+                      namespace)))
     (org-babel-eval compile-cmd "")
     (let ((results (org-babel-eval run-cmd "")))
       (when results

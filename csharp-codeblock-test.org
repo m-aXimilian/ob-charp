@@ -16,8 +16,10 @@ Add the language to the loaded ones
 
 #+RESULTS:
 : this is myInt 1
+: this is myInt 1
 
-#+begin_src csharp :main "no"
+
+#+begin_src csharp :main "no" :references '("./compiledvaffan/compiledvaffan.csproj")
   internal interface ITest
   {
       public int MyInt { get; set; }
@@ -50,6 +52,9 @@ Add the language to the loaded ones
 
 #+RESULTS:
 : 17
+: 17
+
+
 
 * others
 #+begin_src C++ :includes '(<iostream>)
