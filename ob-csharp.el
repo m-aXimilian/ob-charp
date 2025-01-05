@@ -51,7 +51,7 @@
     (class :any))
   "Csharp specific header arguments.")
 
-(defcustom org-babel-csharp-compiler "botnet"
+(defcustom org-babel-csharp-compiler "dotnet"
   "The program to call for compiling a csharp project.")
 
 (defcustom org-babel-csharp-project-format-string
