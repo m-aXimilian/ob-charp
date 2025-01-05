@@ -66,20 +66,30 @@ Add the language to the loaded ones
 #+RESULTS:
 : 17
 
-#+begin_src csharp 
+
+#+begin_src csharp :results table
   var test = "String";
-  Console.WriteLine(test);
-#+end_src
-
-
-* others
-#+begin_src C++ :includes '(<iostream>)
-  std::cout << "hello\n";
-  int yo = "fail";y
+  Console.WriteLine($"{test}, no, such, thing, as, a, fish");
 #+end_src
 
 #+RESULTS:
+| String | no | such | thing | as | a | fishyes |
 
+
+* others
+#+begin_src C++ :includes '(<iostream>) :results table
+  std::cout << "no, such, thing, as, a, fish";
+#+end_src
+
+#+RESULTS:
+| no | such | thing | as | a | fishyes |
+
+
+#+begin_src C++
+  int i = 1;
+#+end_src
+
+#+RESULTS:
 
 #+begin_src java
   System.out.println("Console is: " + System.console());

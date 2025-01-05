@@ -158,7 +158,18 @@ This function is called by `org-babel-execute-src-block'"
                      (org-babel-eval run-cmd ""))))
       (when results
         (setq results (org-remove-indentation results))
-        results))))
+        ;; results
+        (org-babel-reassemble-table
+	 (org-babel-result-cond (cdr (assq :result-params params))
+	   results
+	   (let ((tmp-file (org-babel-temp-file "c-")))
+	     (with-temp-file tmp-file (insert results))
+	     (org-babel-import-elisp-from-file tmp-file)))
+	 (org-babel-pick-name
+	  (cdr (assq :colname-names params)) (cdr (assq :colnames params)))
+	 (org-babel-pick-name
+	  (cdr (assq :rowname-names params)) (cdr (assq :rownames params))))
+        ))))
 
 ;; This function should be used to assign any variables in params in
 ;; the context of the session environment.
