@@ -57,6 +57,20 @@
 (defcustom org-babel-csharp-compiler "dotnet"
   "The program to call for compiling a csharp project.")
 
+(defcustom org-babel-csharp-target-framework "net8.0"
+  "The desired target framework to use.")
+
+(defvar org-babel-csharp-nuget-config nil
+  "Pass a valid nuget config as documented here
+https://learn.microsoft.com/en-us/nuget/reference/nuget-config-file.
+
+This is taken as-is. It should be a string in XML-format.")
+
+(defvar org-babel-csharp-additinal-projcect-flags nil
+  "Will be passed in the 'PropertyGroup' defining the project.
+
+This is taken as-is. It should be a string in XML-format.")
+
 (defun org-babel--parse-project-file (refs type namespace)
   "Construct a csproj file from a list of REFS based on the project TYPE with the root NAMESPACE."
   (concat "<Project Sdk=\"Microsoft.NET.Sdk\">\n\n  "
@@ -64,13 +78,14 @@
             (org-babel--csharp-parse-refs refs))
           "\n\n  <PropertyGroup>"
           (unless (equal type "class")
-            (format "\n    <OutputType>Exe</OutputType>
-    <RootNamespace>%s</RootNamespace>" namespace))
-    "\n    <TargetFramework>net7.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
-\n</Project>"))
+            (format "\n    <OutputType>Exe</OutputType>\n    <RootNamespace>%s</RootNamespace>" namespace))
+          (format "\n    <TargetFramework>%s</TargetFramework>" org-babel-csharp-target-framework)
+          "\n    <ImplicitUsings>enable</ImplicitUsings>"
+          "\n    <Nullable>enable</Nullable>"
+          (when org-babel-csharp-additinal-projcect-flags
+            (format "\n    %s" org-babel-csharp-additinal-projcect-flags))
+          "\n  </PropertyGroup>"
+          "\n</Project>"))
 
 (defun org-babel--csharp-preprocess-params (params)
   "Make sure PARAMS contains a cons-cell for  both `:project' and `:namespace'."
@@ -114,13 +129,26 @@
       (buffer-string))))
 
 (defun org-babel--csharp-parse-refs (refs)
-  (let ((itemgroup "<ItemGroup>"))
+  (let ((projectref)
+        (assemblyref)
+        (systemref))
     (dolist (ref refs)
-      (let ((full-ref (file-truename ref)))
-        (unless (file-exists-p full-ref)
-          (error (format "Reference %S not found" full-ref)))
-      (setf itemgroup (concat itemgroup (format "\n    <ProjectReference Include=\"%s\" />" full-ref)))))
-    (concat itemgroup "\n  </ItemGroup>")))
+      (let* ((full-ref (file-truename ref))
+             (use-fill-ref-p (file-exists-p full-ref)))
+        ;; (unless (file-exists-p full-ref)
+        ;;   (error (format "Reference %S not found" full-ref)))
+        (cond
+         ((string-search ".csproj" full-ref)
+          (setf projectref (concat projectref (format "\n    <ProjectReference Include=\"%s\" />" full-ref))))
+         ((string-search ".dll" full-ref)
+          (setf assemblyref (concat assemblyref (format "\n    <Reference Include=%S>\n      <HintPath>%s</HintPath>\n    </Reference>" (file-name-base full-ref) full-ref))))
+         (t (setf systemref (concat systemref (format "\n    <PackageReference Include=%S />" ref)))))))
+    ;; (concat projectref "\n  </ItemGroup>")
+    (format "%s\n\n  %s\n\n  %s"
+            (if projectref (format "<ItemGroup>%s\n  </ItemGroup>" projectref) "")
+            (if assemblyref (format "<ItemGroup>%s\n  </ItemGroup>" assemblyref) "")
+            (if systemref (format "<ItemGroup>%s\n  </ItemGroup>" systemref) ""))
+    ))
 
 (defun org-babel-execute:csharp (body params)
   "Execute a block of Csharp code with org-babel.
@@ -141,9 +169,10 @@ This function is called by `org-babel-execute-src-block'"
          (bin-dir (file-name-concat base-dir "bin"))
          (program-file (file-name-concat base-dir "Program.cs"))
          (project-file (file-name-concat base-dir (concat project-name ".csproj")))
+         (nuget-file (file-name-concat base-dir "NuGet.Config"))
          (project-type (alist-get :project-type params))
-         (compile-cmd (concat org-babel-csharp-compiler " " "build" " " "--output" " " bin-dir " " (file-truename base-dir)))
-         (run-cmd (file-truename (file-name-concat bin-dir project-name))))
+         (compile-cmd (concat org-babel-csharp-compiler " " "build" " " "--output" " " (format "%S" bin-dir) " " (format "%S"(file-truename base-dir))))
+         (run-cmd (format "%S" (file-truename (file-name-concat bin-dir project-name)))))
     (unless (file-exists-p base-dir)
       (make-directory base-dir))
     (with-temp-file program-file
@@ -152,6 +181,10 @@ This function is called by `org-babel-execute-src-block'"
       (insert
        (let ((refs (alist-get :references params)))
          (org-babel--parse-project-file refs project-type namespace))))
+    (when org-babel-csharp-nuget-config
+      (with-temp-file nuget-file
+        (insert org-babel-csharp-nuget-config))
+      (org-babel-eval (format "dotnet restore %S" project-file) ""))
     (message compile-cmd)
     (org-babel-eval compile-cmd "")
     (let ((results (unless (string= project-type "class")
