@@ -217,8 +217,7 @@ This function is called by `org-babel-execute-src-block'"
 	 (org-babel-pick-name
 	  (cdr (assq :colname-names params)) (cdr (assq :colnames params)))
 	 (org-babel-pick-name
-	  (cdr (assq :rowname-names params)) (cdr (assq :rownames params))))
-        ))))
+	  (cdr (assq :rowname-names params)) (cdr (assq :rownames params))))))))
 
 ;; This function should be used to assign any variables in params in
 ;; the context of the session environment.
@@ -239,8 +238,7 @@ Emacs-lisp table, otherwise return the results as a string."
 (defun org-babel-csharp-initiate-session (&optional session)
   "If there is not a current inferior-process-buffer in SESSION then create.
 Return the initialized session."
-  (unless (string= session "none")
-    ))
+  (unless (string= session "none")))
 
 (provide 'ob-csharp)
 ;;; ob-csharp.el ends here
