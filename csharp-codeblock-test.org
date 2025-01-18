@@ -18,7 +18,8 @@ Add the language to the loaded ones
 : this is myInt 1
 
 
-#+begin_src csharp :main "no" :class "no" :project "external-test" :namespace "oha" :project-type "class"
+
+#+begin_src csharp :main no :class "no" :project "external-test" :namespace "oha" :project-type "class"
   public class Printer
   {
       static public void WriteInt(int writeInt)
@@ -32,7 +33,7 @@ Add the language to the loaded ones
 
 
 
-#+begin_src csharp :main "no" :references '( "./external-test/external-test.csproj") :class "Prog" :usings '("oha")
+#+begin_src csharp :main no :references '( "./external-test/external-test.csproj") :class "Prog" :usings '("oha")
   internal interface ITest
   {
       public int MyInt { get; set; }
@@ -73,11 +74,12 @@ Add the language to the loaded ones
 #+end_src
 
 #+RESULTS:
-| String | no | such | thing | as | a | fishyes |
+| String | no | such | thing | as | a | fish |
+
 
 
 * others
-#+begin_src C++ :includes '(<iostream>) :results table
+#+begin_src C++ :includes '(<iostream>) :results table :var a=1
   std::cout << "no, such, thing, as, a, fish";
 #+end_src
 

@@ -48,7 +48,6 @@
     (namespace . :any)
     (project . :any)
     (project-type . :any)
-    (namespace)
     (class :any)
     (references :any)
     (usings :any))
@@ -57,7 +56,7 @@
 (defcustom org-babel-csharp-compiler "dotnet"
   "The program to call for compiling a csharp project.")
 
-(defcustom org-babel-csharp-target-framework "net8.0"
+(defcustom org-babel-csharp-target-framework "net7.0"
   "The desired target framework to use.")
 
 (defvar org-babel-csharp-nuget-config nil

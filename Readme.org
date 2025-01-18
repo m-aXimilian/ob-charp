@@ -1,18 +1,63 @@
-#+title: org-babel Support for C# source blocks
+#+OPTIONS: H:3 num:nil toc:2 \n:nil ::t |:t ^:{} -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
+#+TITLE: org-babel Support for C# source blocks
+#+AUTHOR: Maximilian Kueffner
+#+EMAIL:  poverobuosodonati@gmail.com
+#+LANGUAGE: en
+#+HTML_LINK_UP: index.html
+#+HTML_LINK_HOME: https://orgmode.org/worg/
+#+EXCLUDE_TAGS: noexport
 
-* Handling Dotnet projects
-1. Create a simple-as-can-be project
-   #+begin_src sh
-     dotnet new console -n sample-project --use-program-main
-   #+end_src
-   ~--use-program-main~ inhibits toplevel functions and adds a main function instead
-2. Run it
-   #+begin_src sh
-     cd sample-project
-     dotnet run sample-project.csproj
-   #+end_src
-   
-* About org-babel
-Have a look at [[https://www.jstatsoft.org/article/view/v046i03][A Multi-Language Computing Environment for Literate Programming and Reproducible Research]] for the initial publication and [[https://orgmode.org/worg/org-contrib/babel/][this website]] for an entry point.
+* Todos [0/5]                                                      :noexport:
+- [ ] write a requirements and setup section
+- [ ] fetch installed .NET SDKs from the system to check/fill ~org-babel-csharp-target-framework~ appropriate to the system
+- [ ] check if dotnet is installed
+- [ ] make use of the ~:dir~ header argument to set the compile output of the code blocks
+- [ ] is ~:project-type~ necessary? -> not really, as it is an implicit information based on ~:main~ (and ~:class~)?
+
+* Introduction
+Babel can compile and evaluate C# code blocks with this module. It is different from [[https://git.sr.ht/~bzg/org-contrib/tree/master/item/lisp/ob-csharp.el][ob-csharp in org-contrib]] in that it allows for significantly more complex setups, which is outlined in the following.
+A C# code-block
++ will be compiled in the context of a [[https://learn.microsoft.com/en-us/aspnet/web-forms/overview/deployment/web-deployment-in-the-enterprise/understanding-the-project-file][csproj-file]]
++ it can have dependencies on
+  - other projects (define in csproj-files)
+  - compiled assemblies (*.dll-files)
+  - [[https://www.nuget.org/][nuget]] packages (custom nuget feeds can be configured)
++ can be compiled with arbitrary [[https://dotnet.microsoft.com/en-us/download][.NET SDKs]]
++ allows for arbitrary project settings
 
 
+* Requirements and Setup
+
+
+* Org Mode Features for C#
+** Configuration
+There are a few global variable that will have effect on *every* C# code block.
+
+- =org-babel-csharp-compiler= :: sets the compiler that will be used to compile the code block's csproj file. Default is ~dotnet~.
+  
+- =org-babel-csharp-target-framework= :: depending on the installed .NET SDKs (get a list by calling ~dotnet --list-sdks~), this variable can be set as desired. It will have effect on the code block's csproj file. Default is ~net7.0~
+
+- =org-babel-csharp-nuget-config= :: when not ~nil~, this variable will be treated as content of the [[https://learn.microsoft.com/en-us/nuget/reference/nuget-config-file][NuGet.Config]] file. Note that it must be in "encoded" in a valid XML syntax as it will be used as-is.
+
+- =org-babel-csharp-additinal-projcect-flags= :: if the default "minimal viable" csproj configuration does not fit your needs, you can add arbitrary additional configuration here. When not ~nil~ it will be put in it's own ~PropertyGroup~ section of the csproj file. Note that it must be in "encoded" in a valid XML syntax as it will be used as-is.
+
+
+You might want to reset some of these variables to their defaults in case you need different, or default, configuration in subsequent code blocks.
+
+** Header arguments
+- =:main= :: defines whether or not to wrap the code block's content in a default ~void Main(string[] args)~ function. The default is ="yes"=; you can set it to ~"no"~ to inhibit automatic main-function wrapping.
+
+- =:namespace= :: defines the namespace of the code block. It accepts string arguments. If left empty, it will use a string based on ~(gensym)~ to set the project's namespace.
+
+- =:project= :: defines a project name used for the csproj file. It accepts string arguments. If left empty, it will use a string based on ~(gensym)~ to set the project name.
+
+- =:class= :: defines the name of the program wrapper class. It accepts string arguments. If left empty, it will use the default name ~Program~ as a program wrapper class name. A value of ~"no"~ will inhibit a wrapper class.
+
+- =:references= :: accepts a list of dependencies. Three types of references are allowed
+  1. *Project References* can be passed using a full or relative path to an existing project. To set a project reference, the file path will need a ~.csproj~ file extension. Example: =:references '( "/home/me/otherproject/theproject.csproj")=
+  2. *Assembly Reference* can be passed using a full or relative path to an existing assembly. To set an assembly reference, the file path will need a ~.dll~ file extension. Example: =:references '( "/home/me/otherproject/theproject.dll")=
+  3. *Nuget Package Reference* can be passed by simply adding the correct name of the package to the reference list. In order for this to work, the =org-babel-csharp-nuget-config= should define a nuget feed from where this package can be fetched. To set a nuget reference, don't add a file extension to the dependency. Example: =:references '(Newtonsoft.Json)=
+     
+- =:usings= :: a list of namespaces to include in the using block of the resulting .cs file. This is
+  + a convenience feature when you set ~:class "no" :main "no"~ (as you could type ~using project.a.featureb;~ at the start of the code block)
+  + a necessity if the main function and the wrapper class are generated automatically and you need to pass in namespace dependencies (and don't want to write fully qualified names for usages of the respective external dependencies)
