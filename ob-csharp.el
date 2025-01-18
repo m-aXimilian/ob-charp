@@ -96,8 +96,7 @@ This is taken as-is. It should be a string in XML-format.")
 
 (defun org-babel--csharp-parse-usings (usings)
   (let ((usinglist))
-    (dolist (using usings)
-      (setf usinglist (concat usinglist (format "using %s;\n" using))))
+    (setf usinglist (mapconcat #'(lambda (u) (format "using %s;" u)) usings "\n"))
     usinglist))
 
 (defun org-babel-expand-body:csharp (body params ;; processed-params
