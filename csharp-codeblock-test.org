@@ -8,14 +8,25 @@ Add the language to the loaded ones
   (add-to-list 'org-babel-load-languages '(csharp . t))
 #+end_src
 
-#+begin_src csharp :session none :project "compiledvaffan" :namespace "wow"
+#+begin_src csharp :session none :project "compiledvaffan" :namespace "wow" :var a=3 b="pizza" c=5.3 d=-1
   int myInt = 1;
-  var myString = $"this is myInt {myInt}";
+  string PrintTypeVal<T>(T tp)
+  {
+      return $"{tp.GetType().ToString()} {tp}";
+  }
+  // var myString = $" {myInt} \n {a.GetType().ToString()} {a} {b}";
+  var myString = $"{PrintTypeVal(myInt)}\n{PrintTypeVal(a)}\n{PrintTypeVal(b)}\n{PrintTypeVal(c)}\n{PrintTypeVal(d)}";
+
   Console.WriteLine(myString);
+
 #+end_src
 
 #+RESULTS:
-: this is myInt 1
+| System.Int32  |     1 |
+| System.Int32  |     3 |
+| System.String | pizza |
+| System.Double |   5.3 |
+| System.Int32  |    -1 |
 
 
 

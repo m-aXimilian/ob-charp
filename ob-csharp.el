@@ -110,7 +110,8 @@ This is taken as-is. It should be a string in XML-format.")
                   (t class-tmp)))
          (params (org-babel--csharp-preprocess-params params))
          (namespace (alist-get :namespace params))
-         (usings (alist-get :usings params)))
+         (usings (alist-get :usings params))
+         (vars (org-babel--get-vars params)))
     (with-temp-buffer
       (insert "namespace " namespace ";\n")
       (when usings
@@ -120,6 +121,7 @@ This is taken as-is. It should be a string in XML-format.")
       (when main-p
         (insert "static void Main(string[] args)\n{\n"))
       (let ((start (point)))
+        (insert (mapconcat 'org-babel-csharp-var-to-csharp vars "\n") "\n")
         (insert body))
       (when main-p
         (insert "\n}"))
@@ -212,7 +214,7 @@ This function is called by `org-babel-execute-src-block'"
 (defun org-babel-csharp-var-to-csharp (var)
   "Convert an elisp var into a string of csharp source code
 specifying a var of the same value."
-  (format "%S" var))
+  (format "var %s = %S;" (car var) (cdr var)))
 
 (defun org-babel-csharp-table-or-string (results)
   "If the results look like a table, then convert them into an

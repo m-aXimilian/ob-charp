@@ -7,12 +7,13 @@
 #+HTML_LINK_HOME: https://orgmode.org/worg/
 #+EXCLUDE_TAGS: noexport
 
-* Todos [0/5]                                                      :noexport:
+* TODO Todos [0/5]                                        :noexport:
 - [ ] write a requirements and setup section
 - [ ] fetch installed .NET SDKs from the system to check/fill ~org-babel-csharp-target-framework~ appropriate to the system
 - [ ] check if dotnet is installed
 - [ ] make use of the ~:dir~ header argument to set the compile output of the code blocks
 - [ ] is ~:project-type~ necessary? -> not really, as it is an implicit information based on ~:main~ (and ~:class~)?
+- [ ] implement the elisp->csharp parser
 
 * Introduction
 Babel can compile and evaluate C# code blocks with this module. It is different from [[https://git.sr.ht/~bzg/org-contrib/tree/master/item/lisp/ob-csharp.el][ob-csharp in org-contrib]] in that it allows for significantly more complex setups, which is outlined in the following.
