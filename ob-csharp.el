@@ -139,16 +139,29 @@ This is taken as-is. It should be a string in XML-format.")
         ;;   (error (format "Reference %S not found" full-ref)))
         (cond
          ((string-search ".csproj" full-ref)
-          (setf projectref (concat projectref (format "\n    <ProjectReference Include=\"%s\" />" full-ref))))
+          (setf projectref
+                (concat projectref
+                        (format "\n    <ProjectReference Include=\"%s\" />"
+                                full-ref))))
          ((string-search ".dll" full-ref)
-          (setf assemblyref (concat assemblyref (format "\n    <Reference Include=%S>\n      <HintPath>%s</HintPath>\n    </Reference>" (file-name-base full-ref) full-ref))))
-         (t (setf systemref (concat systemref (format "\n    <PackageReference Include=%S />" ref)))))))
-    ;; (concat projectref "\n  </ItemGroup>")
+          (setf assemblyref
+                (concat assemblyref
+                        (format "\n    <Reference Include=%S>\n      <HintPath>%s</HintPath>\n    </Reference>"
+                                (file-name-base full-ref) full-ref))))
+         (t (setf systemref
+                  (concat systemref
+                          (format "\n    <PackageReference Include=%S />"
+                                  ref)))))))
     (format "%s\n\n  %s\n\n  %s"
-            (if projectref (format "<ItemGroup>%s\n  </ItemGroup>" projectref) "")
-            (if assemblyref (format "<ItemGroup>%s\n  </ItemGroup>" assemblyref) "")
-            (if systemref (format "<ItemGroup>%s\n  </ItemGroup>" systemref) ""))
-    ))
+            (if projectref
+                (format "<ItemGroup>%s\n  </ItemGroup>" projectref)
+              "")
+            (if assemblyref
+                (format "<ItemGroup>%s\n  </ItemGroup>" assemblyref)
+              "")
+            (if systemref
+                (format "<ItemGroup>%s\n  </ItemGroup>" systemref)
+              ""))))
 
 (defun org-babel-execute:csharp (body params)
   "Execute a block of Csharp code with org-babel.
@@ -160,9 +173,7 @@ This function is called by `org-babel-execute-src-block'"
          (vars (org-babel--get-vars processed-params))
          (result-params (assq :result-params processed-params))
          (result-type (assq :result-type processed-params))
-         (full-body (org-babel-expand-body:csharp
-                     body params ;; processed-params
-                     ))
+         (full-body (org-babel-expand-body:csharp body params))
          (project-name (alist-get :project params))
          (namespace (alist-get :namespace params))
          (base-dir (file-name-concat (file-truename ".") project-name))
@@ -171,7 +182,12 @@ This function is called by `org-babel-execute-src-block'"
          (project-file (file-name-concat base-dir (concat project-name ".csproj")))
          (nuget-file (file-name-concat base-dir "NuGet.Config"))
          (project-type (alist-get :project-type params))
-         (compile-cmd (concat org-babel-csharp-compiler " " "build" " " "--output" " " (format "%S" bin-dir) " " (format "%S"(file-truename base-dir))))
+         (compile-cmd (concat
+                       org-babel-csharp-compiler
+                       " " "build"
+                       " " "--output"
+                       " " (format "%S" bin-dir)
+                       " " (format "%S"(file-truename base-dir))))
          (run-cmd (format "%S" (file-truename (file-name-concat bin-dir project-name)))))
     (unless (file-exists-p base-dir)
       (make-directory base-dir))
