@@ -32,15 +32,11 @@
 
 ;;; Code:
 (require 'ob)
-(require 'ob-ref)
-(require 'ob-comint)
-(require 'ob-eval)
-;; possibly require modes required for your language
 
-;; optionally define a file extension for this language
+;; file extension for C#
 (add-to-list 'org-babel-tangle-lang-exts '("csharp" . "cs"))
 
-;; optionally declare default header arguments for this language
+;; default header arguments for C#
 (defvar org-babel-default-header-args:csharp
   '((main . :any)
     (namespace . :any)
