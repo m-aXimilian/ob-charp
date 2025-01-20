@@ -89,6 +89,28 @@ Add the language to the loaded ones
 
 
 
+#+begin_src csharp :references '(("Newtonsoft.Json" . "13.0.3")) :usings '("System" "Newtonsoft.Json") :main no :project "json-test" :results raw
+  public class DTO
+  {
+      public int TheInt { get; set; }
+      public string TheString { get; set; }
+  }
+
+  static void Main(string[] args)
+  {
+      DTO myDto = new() { TheInt = 12, TheString = "ok" };
+
+      string json = JsonConvert.SerializeObject(myDto, Formatting.Indented);
+      Console.WriteLine($"{json}");
+  }
+#+end_src
+
+#+RESULTS:
+{
+  "TheInt": 12,
+  "TheString": "ok"
+}
+
 * others
 #+begin_src C++ :includes '(<iostream>) :results table :var a=1
   std::cout << "no, such, thing, as, a, fish";

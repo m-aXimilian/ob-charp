@@ -127,7 +127,15 @@ This is taken as-is. It should be a string in XML-format.")
         (assemblyref)
         (systemref))
     (dolist (ref refs)
-      (let* ((full-ref (file-truename ref))
+      (let* ((version (pcase (type-of ref)
+                        ('cons (cdr ref))
+                        (_ nil)))
+             (ref-string (pcase (type-of ref)
+                           ('cons (car ref))
+                           (_ ref)))
+             (full-ref (if version
+                           (file-truename (car ref))
+                         (file-truename ref)))
              (use-fill-ref-p (file-exists-p full-ref)))
         ;; (unless (file-exists-p full-ref)
         ;;   (error (format "Reference %S not found" full-ref)))
@@ -144,8 +152,10 @@ This is taken as-is. It should be a string in XML-format.")
                                 (file-name-base full-ref) full-ref))))
          (t (setf systemref
                   (concat systemref
-                          (format "\n    <PackageReference Include=%S />"
-                                  ref)))))))
+                          (format "\n    <PackageReference Include=%s />"
+                                  (if version
+                                      (format "%S Version=%S" ref-string version)
+                                    (format "%S" ref-string)))))))))
     (format "%s\n\n  %s\n\n  %s"
             (if projectref
                 (format "<ItemGroup>%s\n  </ItemGroup>" projectref)
@@ -193,8 +203,10 @@ This function is called by `org-babel-execute-src-block'"
          (org-babel--parse-project-file refs project-type namespace))))
     (when org-babel-csharp-nuget-config
       (with-temp-file nuget-file
-        (insert org-babel-csharp-nuget-config))
-      (org-babel-eval (format "dotnet restore %S" project-file) ""))
+        (insert org-babel-csharp-nuget-config)))
+    ;; nuget restore
+    (message (format "dotnet restore %S" project-file))
+    (org-babel-eval (format "dotnet restore %S" project-file) "")
     (message compile-cmd)
     (org-babel-eval compile-cmd "")
     (let ((results (unless (string= project-type "class")
