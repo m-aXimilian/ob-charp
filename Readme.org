@@ -7,6 +7,19 @@
 #+HTML_LINK_HOME: https://orgmode.org/worg/
 #+EXCLUDE_TAGS: noexport
 
+#+name: banner
+#+begin_export html
+  <div id="subtitle" style="float: center; text-align: center;">
+  <p>
+  Org Mode support for
+    <br><a href="https://dotnet.microsoft.com/en-us/languages/csharp">C#</a>
+  </p>
+  <p>
+  <a href="https://dotnet.microsoft.com/en-us/languages/csharp"><img src="https://upload.wikimedia.org/wikipedia/commons/f/ff/C-Sharp_Logo.svg"/></a>
+  </p>
+  </div>
+#+end_export
+
 * TODO Todos [6/7]                                               :noexport:
 - [X] write a requirements and setup section
 - [X] fetch installed .NET SDKs from the system to check/fill ~org-babel-csharp-target-framework~ appropriate to the system -> future tbd
