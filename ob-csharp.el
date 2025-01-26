@@ -41,7 +41,6 @@
   '((main . :any)
     (namespace . :any)
     (project . :any)
-    (project-type . :any)
     (class :any)
     (references :any)
     (usings :any))
@@ -64,13 +63,13 @@ This is taken as-is. It should be a string in XML-format.")
 
 This is taken as-is. It should be a string in XML-format.")
 
-(defun org-babel--parse-project-file (refs type namespace)
+(defun org-babel--csharp-generate-project-file (refs type namespace)
   "Construct a csproj file from a list of REFS based on the project TYPE with the root NAMESPACE."
   (concat "<Project Sdk=\"Microsoft.NET.Sdk\">\n\n  "
           (when refs
             (org-babel--csharp-parse-refs refs))
           "\n\n  <PropertyGroup>"
-          (unless (equal type "class")
+          (unless (eq type 'class)
             (format "\n    <OutputType>Exe</OutputType>\n    <RootNamespace>%s</RootNamespace>" namespace))
           (format "\n    <TargetFramework>%s</TargetFramework>" org-babel-csharp-target-framework)
           "\n    <ImplicitUsings>enable</ImplicitUsings>"
@@ -185,7 +184,10 @@ This function is called by `org-babel-execute-src-block'"
          (program-file (file-name-concat base-dir "Program.cs"))
          (project-file (file-name-concat base-dir (concat project-name ".csproj")))
          (nuget-file (file-name-concat base-dir "NuGet.Config"))
-         (project-type (alist-get :project-type params))
+         (project-type (if (and (equal "no" (alist-get :main params))
+                                (equal "no" (alist-get :class params)))
+                           'class
+                         'executable))
          (compile-cmd (concat
                        org-babel-csharp-compiler
                        " " "build"
@@ -200,7 +202,7 @@ This function is called by `org-babel-execute-src-block'"
     (with-temp-file project-file
       (insert
        (let ((refs (alist-get :references params)))
-         (org-babel--parse-project-file refs project-type namespace))))
+         (org-babel--csharp-generate-project-file refs project-type namespace))))
     (when org-babel-csharp-nuget-config
       (with-temp-file nuget-file
         (insert org-babel-csharp-nuget-config)))
@@ -209,7 +211,7 @@ This function is called by `org-babel-execute-src-block'"
     (org-babel-eval (format "dotnet restore %S" project-file) "")
     (message compile-cmd)
     (org-babel-eval compile-cmd "")
-    (let ((results (unless (string= project-type "class")
+    (let ((results (unless (eq project-type 'class)
                      (org-babel-eval run-cmd ""))))
       (when results
         (setq results (org-remove-indentation results))

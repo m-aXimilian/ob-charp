@@ -1,6 +1,8 @@
-Add the current working directory to the load path
+* Setup
+
+Add the working directory of this repository to the load path (adapt the path to the repo's root directory if that is different on the respective machine)
 #+begin_src elisp :results silent
-  (add-to-list 'load-path (expand-file-name "/home/max/repos/csharp-babel"))
+  (add-to-list 'load-path (expand-file-name "~/repos/csharp-babel"))
 #+end_src
 
 Add the language to the loaded ones
@@ -8,13 +10,15 @@ Add the language to the loaded ones
   (add-to-list 'org-babel-load-languages '(csharp . t))
 #+end_src
 
-#+begin_src csharp :session none :project "compiledvaffan" :namespace "wow" :var a=3 b="pizza" c=5.3 d=-1
+
+* Variable Types
+#+begin_src csharp :session none :project "type-tests" :namespace "wow" :var a=3 b="pizza" c=5.3 d=-1
   int myInt = 1;
   string PrintTypeVal<T>(T tp)
   {
       return $"{tp.GetType().ToString()} {tp}";
   }
-  // var myString = $" {myInt} \n {a.GetType().ToString()} {a} {b}";
+
   var myString = $"{PrintTypeVal(myInt)}\n{PrintTypeVal(a)}\n{PrintTypeVal(b)}\n{PrintTypeVal(c)}\n{PrintTypeVal(d)}";
 
   Console.WriteLine(myString);
@@ -29,7 +33,7 @@ Add the language to the loaded ones
 | System.Int32  |    -1 |
 
 
-
+* Class Library
 #+begin_src csharp :main no :class "no" :project "external-test" :namespace "oha" :project-type "class"
   public class Printer
   {
@@ -79,6 +83,7 @@ Add the language to the loaded ones
 : 17
 
 
+* Tabular Output
 #+begin_src csharp :results table
   var test = "String";
   Console.WriteLine($"{test}, no, such, thing, as, a, fish");
@@ -88,7 +93,7 @@ Add the language to the loaded ones
 | String | no | such | thing | as | a | fish |
 
 
-
+* NuGet Package references
 #+begin_src csharp :references '(("Newtonsoft.Json" . "13.0.3")) :usings '("System" "Newtonsoft.Json") :main no :project "json-test" :results raw
   public class DTO
   {
@@ -110,6 +115,7 @@ Add the language to the loaded ones
   "TheInt": 12,
   "TheString": "ok"
 }
+
 
 * others
 #+begin_src C++ :includes '(<iostream>) :results table :var a=1
