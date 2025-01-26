@@ -123,7 +123,7 @@ Add the language to the loaded ones
 #+end_src
 
 #+RESULTS:
-| no | such | thing | as | a | fishyes |
+| no | such | thing | as | a | fish |
 
 
 #+begin_src C++
