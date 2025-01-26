@@ -89,7 +89,13 @@ You might want to reset some of these variables to their defaults in case you ne
 ** Minimal Viable C# Code Block
 Simply adding a new code block and setting its language to =csharp= is sufficient.
 The following will compile and evaluate (as an ~<OutputType>Exe</OutputType>~ project).
+#+begin_example
 #+begin_src csharp
+  Console.WriteLine("Hello from C#");
+#+end_src
+#+end_example
+
+#+begin_src csharp :exports results
   Console.WriteLine("Hello from C#");
 #+end_src
 
@@ -108,7 +114,23 @@ The following code block will be
 + wrapped in a class ~MyTest~
 + completely wrapped in a ~static void Main(string[] args)~ function
 
+#+begin_example
 #+begin_src csharp :dir "my-test" :project "MyTest" :namespace "My.Test.NameSpace" :class "MyClass" :usings '("System" "System.Diagnostics" "System.Reflection") :main yes
+  string projectName = Assembly.GetCallingAssembly().GetName().Name;
+  string projectDirectory = "my-test";
+  var stackTrace = new StackTrace();
+  var firstStackFrame = stackTrace.GetFrame(0);
+  string methodName = firstStackFrame.GetMethod().ToString();
+  string className = firstStackFrame.GetMethod().DeclaringType.ToString();
+
+  Console.WriteLine($"Directory:\t{projectDirectory}");
+  Console.WriteLine($"Project:\t{projectName}");
+  Console.WriteLine($"Class:\t{className}");
+  Console.WriteLine($"Method:\t{methodName}");
+#+end_src
+#+end_example
+
+#+begin_src csharp :dir "my-test" :project "MyTest" :namespace "My.Test.NameSpace" :class "MyClass" :usings '("System" "System.Diagnostics" "System.Reflection") :main yes :exports results
   string projectName = Assembly.GetCallingAssembly().GetName().Name;
   string projectDirectory = "my-test";
   var stackTrace = new StackTrace();
@@ -134,7 +156,21 @@ Idiomatic variable types are detected automatically. The following code block in
 + ~System.Double~
 + ~System.String~
 
+#+begin_example
 #+begin_src csharp :project "type-tests" :namespace "wow" :var a=3 b="pizza" c=5.3 d=-1
+  int myInt = 1;
+  string PrintTypeVal<T>(T tp)
+  {
+      return $"{tp.GetType().ToString()} {tp}";
+  }
+
+  var myString = $"{PrintTypeVal(myInt)}\n{PrintTypeVal(a)}\n{PrintTypeVal(b)}\n{PrintTypeVal(c)}\n{PrintTypeVal(d)}";
+
+  Console.WriteLine(myString);
+#+end_src
+#+end_example
+
+#+begin_src csharp :project "type-tests" :namespace "wow" :var a=3 b="pizza" c=5.3 d=-1 :exports results
   int myInt = 1;
   string PrintTypeVal<T>(T tp)
   {
@@ -155,7 +191,17 @@ Idiomatic variable types are detected automatically. The following code block in
 
 ** Output Formatting
 In the above code blocks, tabular output was used implicitly. List output is supported as well but must be specified like so
+
+#+begin_example
 #+begin_src csharp :results raw list
+  Console.WriteLine("Item 1");
+  Console.WriteLine("Item 2");
+  Console.WriteLine("Item 3");
+  Console.WriteLine("Item 4");
+#+end_src
+#+end_example
+
+#+begin_src csharp :results raw list :exports results
   Console.WriteLine("Item 1");
   Console.WriteLine("Item 2");
   Console.WriteLine("Item 3");
@@ -173,7 +219,29 @@ Code blocks can be configured as "class libraries", i.e., not being interpreted 
 Other code blocks can either reference the /.csproj/ file and declare them as project references or reference the assemblies directly as assembly references.
 The following code block defines two interfaces ~ITest~ and ~IStringTest~ as well as an idiomatic ~Printer~ class for showcasing purposes.
 
+#+begin_example
 #+begin_src csharp :main no :class no :project "MyClassLib" :namespace "My.Class.Library" :dir "./my-class-lib" :results silent
+  public class Printer
+  {
+      static public void WriteInt(int writeInt)
+      {
+          Console.WriteLine(writeInt);
+      }
+  }
+
+  public interface ITest
+  {
+      public int MyInt { get; set; }
+  }
+
+  public interface IStringTest
+  {
+      public string MyString { get; set; }
+  }
+#+end_src
+#+end_example
+
+#+begin_src csharp :main no :class no :project "MyClassLib" :namespace "My.Class.Library" :dir "./my-class-lib" :results silent :exports results
   public class Printer
   {
       static public void WriteInt(int writeInt)
@@ -197,7 +265,32 @@ The following code block defines two interfaces ~ITest~ and ~IStringTest~ as wel
 
 The following code block uses the class library code block "MyClassLib" as a project reference via its /MyClassLib.csproj/ file.
 Note that we must declare the using of the ~My.Class.Library~ namespace in the =:usings= header argument to make this work.
+
+#+begin_example
 #+begin_src csharp :main no :references '( "./my-class-lib/MyClassLib/MyClassLib.csproj") :class "Prog" :usings '("My.Class.Library")
+  internal class TestClass : ITest, IStringTest
+  {
+      public TestClass()
+      {
+          this.MyInt = 42;
+          this.MyString = "Project reference";
+      }
+
+      public int MyInt { get; set; }
+
+      public string MyString { get; set; }
+  }
+
+  public static void Main(string[] args)
+  {
+      TestClass myTest = new TestClass();
+      Console.Write($"from {myTest.MyString}: ");
+      Printer.WriteInt(myTest.MyInt);
+  }
+#+end_src
+#+end_example
+
+#+begin_src csharp :main no :references '( "./my-class-lib/MyClassLib/MyClassLib.csproj") :class "Prog" :usings '("My.Class.Library") :exports results
   internal class TestClass : ITest, IStringTest
   {
       public TestClass()
@@ -222,8 +315,33 @@ Note that we must declare the using of the ~My.Class.Library~ namespace in the =
 #+RESULTS:
 : from Project reference: 42
 
-We can achieve the same by referencing the /MyClassLib.dll/ as an assembly reference: 
+We can achieve the same by referencing the /MyClassLib.dll/ as an assembly reference:
+
+#+begin_example
 #+begin_src csharp :main no :references '( "./my-class-lib/MyClassLib/bin/MyClassLib.dll") :class "Prog" :usings '("My.Class.Library")
+  internal class TestClass : ITest, IStringTest
+  {
+      public TestClass()
+      {
+          this.MyInt = 42;
+          this.MyString = "Assembly reference";
+      }
+
+      public int MyInt { get; set; }
+
+      public string MyString { get; set; }
+  }
+
+  public static void Main(string[] args)
+  {
+      TestClass myTest = new TestClass();
+      Console.Write($"from {myTest.MyString}: ");
+      Printer.WriteInt(myTest.MyInt);
+  }
+#+end_src
+#+end_example
+
+#+begin_src csharp :main no :references '( "./my-class-lib/MyClassLib/bin/MyClassLib.dll") :class "Prog" :usings '("My.Class.Library") :exports results
   internal class TestClass : ITest, IStringTest
   {
       public TestClass()
@@ -250,7 +368,24 @@ We can achieve the same by referencing the /MyClassLib.dll/ as an assembly refer
 
 ** NuGet References
 With the following code block, we create a string serialization based on the [[https://www.newtonsoft.com/json][Newtonsoft.Json]] NuGet package. Since this is available from [[https://www.nuget.org/][nuget.org]], no additional configuration is needed.
+#+begin_example
 #+begin_src csharp :references '(("Newtonsoft.Json" . "13.0.3")) :usings '("System" "Newtonsoft.Json") :main no :project "json-test" :results raw
+  public class DTO
+  {
+      public int TheInt { get; set; }
+      public string TheString { get; set; }
+  }
+
+  static void Main(string[] args)
+  {
+      DTO myDto = new() { TheInt = 12, TheString = "ok" };
+
+      string json = JsonConvert.SerializeObject(myDto, Formatting.Indented);
+      Console.WriteLine($"{json}");
+  }
+#+end_src
+#+end_example
+#+begin_src csharp :references '(("Newtonsoft.Json" . "13.0.3")) :usings '("System" "Newtonsoft.Json") :main no :project "json-test" :results raw :exports results
   public class DTO
   {
       public int TheInt { get; set; }
