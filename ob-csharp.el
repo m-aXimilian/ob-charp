@@ -241,26 +241,10 @@ This function is called by `org-babel-execute-src-block'"
 	 (org-babel-pick-name
 	  (cdr (assq :rowname-names params)) (cdr (assq :rownames params))))))))
 
-;; This function should be used to assign any variables in params in
-;; the context of the session environment.
-(defun org-babel-prep-session:csharp (session params)
-  "Prepare SESSION according to the header arguments specified in PARAMS."
-  )
-
 (defun org-babel-csharp-var-to-csharp (var)
   "Convert an elisp var into a string of csharp source code
 specifying a var of the same value."
   (format "var %s = %S;" (car var) (cdr var)))
-
-(defun org-babel-csharp-table-or-string (results)
-  "If the results look like a table, then convert them into an
-Emacs-lisp table, otherwise return the results as a string."
-  )
-
-(defun org-babel-csharp-initiate-session (&optional session)
-  "If there is not a current inferior-process-buffer in SESSION then create.
-Return the initialized session."
-  (unless (string= session "none")))
 
 (provide 'ob-csharp)
 ;;; ob-csharp.el ends here

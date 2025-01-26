@@ -48,6 +48,8 @@ Add the language to the loaded ones
 - Item 4
 
 
+
+
 * Custom Output Directory
 #+begin_src csharp :dir "./csharp-codeblock-eval" :results raw list
   Console.WriteLine("Outputs in the subdirectory 'csharp-codeblock-eval'\nof the current working dir");
@@ -56,7 +58,6 @@ Add the language to the loaded ones
 #+RESULTS:
 - Outputs in the subdirectory 'csharp-codeblock-eval'
 - of the current working dir
-
 
 
 
@@ -110,6 +111,7 @@ Add the language to the loaded ones
 : 17
 
 
+
 * Tabular Output
 #+begin_src csharp :results table
   var test = "String";
@@ -118,6 +120,7 @@ Add the language to the loaded ones
 
 #+RESULTS:
 | String | no | such | thing | as | a | fish |
+
 
 
 * NuGet Package references
