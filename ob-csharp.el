@@ -166,6 +166,16 @@ This is taken as-is. It should be a string in XML-format.")
                 (format "<ItemGroup>%s\n  </ItemGroup>" systemref)
               ""))))
 
+(defun ensure-directories-exist ()
+  "Ensure the current working directory exists.
+
+Within the context of a possibly non-existing working directory, this will
+recursively create the missing directories of the current working directory's path."
+  (let ((full-name (file-truename ".")))
+    (unless (file-exists-p full-name)
+      (make-directory full-name t))
+    full-name))
+
 (defun org-babel-execute:csharp (body params)
   "Execute a block of Csharp code with org-babel.
 This function is called by `org-babel-execute-src-block'"
@@ -179,7 +189,11 @@ This function is called by `org-babel-execute-src-block'"
          (full-body (org-babel-expand-body:csharp body params))
          (project-name (alist-get :project params))
          (namespace (alist-get :namespace params))
-         (base-dir (file-name-concat (file-truename ".") project-name))
+         (dir-param (alist-get :dir params))
+         (base-dir (file-name-concat (if dir-param
+                                         (ensure-directories-exist)
+                                       (file-truename "."))
+                                     project-name))
          (bin-dir (file-name-concat base-dir "bin"))
          (program-file (file-name-concat base-dir "Program.cs"))
          (project-file (file-name-concat base-dir (concat project-name ".csproj")))

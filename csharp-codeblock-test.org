@@ -33,6 +33,32 @@ Add the language to the loaded ones
 | System.Int32  |    -1 |
 
 
+* List Outputs
+#+begin_src csharp :results raw list
+  Console.WriteLine("Item 1");
+  Console.WriteLine("Item 2");
+  Console.WriteLine("Item 3");
+  Console.WriteLine("Item 4");
+#+end_src
+
+#+RESULTS:
+- Item 1
+- Item 2
+- Item 3
+- Item 4
+
+
+* Custom Output Directory
+#+begin_src csharp :dir "./csharp-codeblock-eval" :results raw list
+  Console.WriteLine("Outputs in the subdirectory 'csharp-codeblock-eval'\nof the current working dir");
+#+end_src
+
+#+RESULTS:
+- Outputs in the subdirectory 'csharp-codeblock-eval'
+- of the current working dir
+
+
+
 * Class Library
 #+begin_src csharp :main no :class "no" :project "external-test" :namespace "oha" :project-type "class"
   public class Printer
