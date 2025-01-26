@@ -7,13 +7,14 @@
 #+HTML_LINK_HOME: https://orgmode.org/worg/
 #+EXCLUDE_TAGS: noexport
 
-* TODO Todos [3/6]                                               :noexport:
-- [ ] write a requirements and setup section
-- [ ] fetch installed .NET SDKs from the system to check/fill ~org-babel-csharp-target-framework~ appropriate to the system
-- [ ] check if dotnet is installed
+* TODO Todos [6/7]                                               :noexport:
+- [X] write a requirements and setup section
+- [X] fetch installed .NET SDKs from the system to check/fill ~org-babel-csharp-target-framework~ appropriate to the system -> future tbd
+- [X] check if dotnet is installed -> made a requirement
 - [X] make use of the ~:dir~ header argument to set the compile output of the code blocks
 - [X] is ~:project-type~ necessary? -> not really, as it is an implicit information based on ~:main~ (and ~:class~)?
 - [X] implement the elisp->csharp parser
+- [ ] write an examples section
 
 * Introduction
 Babel can compile and evaluate C# code blocks with this module. It is different from [[https://git.sr.ht/~bzg/org-contrib/tree/master/item/lisp/ob-csharp.el][ob-csharp in org-contrib]] in that it allows for significantly more complex setups, which is outlined in the following.
@@ -28,6 +29,11 @@ A C# code-block
 
 
 * Requirements and Setup
+A version of [[https://dotnet.microsoft.com/en-us/download][.NET]] should be installed on the host system that is executing the C# code blocks.
+Please make sure that the target framework configured in the variable ~org-babel-csharp-target-framework~ is available on your system. It currently defaults to "net7.0". If you don't have that, customize ~org-babel-csharp-target-framework~ to something that is installed like
+#+begin_src elisp
+  (setf org-babel-csharp-target-framework "net8.0")
+#+end_src
 
 
 * Org Mode Features for C#
@@ -46,6 +52,8 @@ There are a few global variable that will have effect on *every* C# code block.
 You might want to reset some of these variables to their defaults in case you need different, or default, configuration in subsequent code blocks.
 
 ** Header arguments
+- =:dir= :: a (possibly relative) directory where the code generation and build output will be written to.
+
 - =:main= :: defines whether or not to wrap the code block's content in a default ~void Main(string[] args)~ function. The default is ="yes"=; you can set it to ~"no"~ to inhibit automatic main-function wrapping.
 
 - =:namespace= :: defines the namespace of the code block. It accepts string arguments. If left empty, it will use a string based on ~(gensym)~ to set the project's namespace.
