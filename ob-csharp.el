@@ -58,7 +58,7 @@ https://learn.microsoft.com/en-us/nuget/reference/nuget-config-file.
 
 This is taken as-is. It should be a string in XML-format.")
 
-(defvar org-babel-csharp-additinal-projcect-flags nil
+(defvar org-babel-csharp-additional-projcect-flags nil
   "Will be passed in the 'PropertyGroup' defining the project.
 
 This is taken as-is. It should be a string in XML-format.")
@@ -74,8 +74,8 @@ This is taken as-is. It should be a string in XML-format.")
           (format "\n    <TargetFramework>%s</TargetFramework>" org-babel-csharp-target-framework)
           "\n    <ImplicitUsings>enable</ImplicitUsings>"
           "\n    <Nullable>enable</Nullable>"
-          (when org-babel-csharp-additinal-projcect-flags
-            (format "\n    %s" org-babel-csharp-additinal-projcect-flags))
+          (when org-babel-csharp-additional-projcect-flags
+            (format "\n    %s" org-babel-csharp-additional-projcect-flags))
           "\n  </PropertyGroup>"
           "\n</Project>"))
 
