@@ -63,6 +63,22 @@ This is taken as-is. It should be a string in XML-format.")
 
 This is taken as-is. It should be a string in XML-format.")
 
+(defcustom org-babel-csharp-generate-compile-command
+  '(lambda (base-dir bin-dir)
+     (format "%s build --output %S %S"
+             org-babel-csharp-compiler bin-dir base-dir))
+  "A function creating the compile command.
+It must take two parameters intended for the target binary directory and
+the base directory where the csproj-file resides in."
+  :type 'function)
+
+(defcustom org-babel-csharp-generate-restore-command
+  '(lambda (project-file)
+     (format "%s restore %S" org-babel-csharp-compiler project-file))
+  "A function creating a project restore command.
+It must take one parameter defining the project to perform a restore on."
+  :type 'function)
+
 (defun org-babel--csharp-generate-project-file (refs type namespace)
   "Construct a csproj file from a list of REFS based on the project TYPE with the root NAMESPACE."
   (concat "<Project Sdk=\"Microsoft.NET.Sdk\">\n\n  "
@@ -199,12 +215,10 @@ This function is called by `org-babel-execute-src-block'"
                                 (equal "no" (alist-get :class params)))
                            'class
                          'executable))
-         (compile-cmd (concat
-                       org-babel-csharp-compiler
-                       " " "build"
-                       " " "--output"
-                       " " (format "%S" bin-dir)
-                       " " (format "%S"(file-truename base-dir))))
+         (restore-cmd (funcall org-babel-csharp-generate-restore-command project-file))
+         (compile-cmd (funcall org-babel-csharp-generate-compile-command
+                               (file-truename base-dir)
+                               (file-truename bin-dir)))
          (run-cmd (format "%S" (file-truename (file-name-concat bin-dir project-name)))))
     (unless (file-exists-p base-dir)
       (make-directory base-dir))
@@ -218,8 +232,8 @@ This function is called by `org-babel-execute-src-block'"
       (with-temp-file nuget-file
         (insert org-babel-csharp-nuget-config)))
     ;; nuget restore
-    (message (format "dotnet restore %S" project-file))
-    (org-babel-eval (format "dotnet restore %S" project-file) "")
+    (message restore-cmd)
+    (org-babel-eval restore-cmd "")
     (message compile-cmd)
     (org-babel-eval compile-cmd "")
     (let ((results (unless (eq project-type 'class)
