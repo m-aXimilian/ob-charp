@@ -67,7 +67,7 @@ This is taken as-is. It should be a string in XML-format.")
   "Construct a csproj file from a list of REFS based on the project TYPE with the root NAMESPACE."
   (concat "<Project Sdk=\"Microsoft.NET.Sdk\">\n\n  "
           (when refs
-            (org-babel--csharp-parse-refs refs))
+            (org-babel--csharp-format-refs refs))
           "\n\n  <PropertyGroup>"
           (unless (eq type 'class)
             (format "\n    <OutputType>Exe</OutputType>\n    <RootNamespace>%s</RootNamespace>" namespace))
@@ -87,7 +87,7 @@ This is taken as-is. It should be a string in XML-format.")
     (push `(:namespace . ,(symbol-name (gensym))) params))
   params)
 
-(defun org-babel--csharp-parse-usings (usings)
+(defun org-babel--csharp-format-usings (usings)
   (let ((usinglist))
     (setf usinglist (mapconcat #'(lambda (u) (format "using %s;" u)) usings "\n"))
     usinglist))
@@ -107,7 +107,7 @@ This is taken as-is. It should be a string in XML-format.")
     (with-temp-buffer
       (insert "namespace " namespace ";\n")
       (when usings
-        (insert (format "\n%s\n" (org-babel--csharp-parse-usings usings))))
+        (insert (format "\n%s\n" (org-babel--csharp-format-usings usings))))
       (when class
         (insert "\nclass " class "\n{\n"))
       (when main-p
@@ -121,7 +121,7 @@ This is taken as-is. It should be a string in XML-format.")
         (insert "\n}"))
       (buffer-string))))
 
-(defun org-babel--csharp-parse-refs (refs)
+(defun org-babel--csharp-format-refs (refs)
   (let ((projectref)
         (assemblyref)
         (systemref))
