@@ -38,12 +38,12 @@
 
 ;; default header arguments for C#
 (defvar org-babel-default-header-args:csharp
-  '((main . :any)
+  '((main . ((yes no)))
     (namespace . :any)
     (project . :any)
-    (class :any)
-    (references :any)
-    (usings :any))
+    (class . ((no nil :any)))
+    (references . :any)
+    (usings . :any))
   "Csharp specific header arguments.")
 
 (defcustom org-babel-csharp-compiler "dotnet"
