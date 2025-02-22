@@ -205,7 +205,7 @@ This function is called by `org-babel-execute-src-block'"
          (dir-param (alist-get :dir params))
          (base-dir (file-name-concat (if dir-param
                                          (ensure-directories-exist)
-                                       (file-truename "."))
+                                       org-babel-temporary-directory)
                                      project-name))
          (bin-dir (file-name-concat base-dir "bin"))
          (program-file (file-name-concat base-dir "Program.cs"))
