@@ -95,11 +95,10 @@ This is taken as-is. It should be a string in XML-format.")
 (defun org-babel-expand-body:csharp (body params ;; processed-params
                                           )
   (let* ((main-p (not (string= (cdr (assq :main params)) "no")))
-         (class-tmp (alist-get :class params))
-         (class (pcase class-tmp
+         (class (pcase (alist-get :class params)
                   ("no" nil) ;; class explicitly
                   (`nil "Program")
-                  (t class-tmp)))
+                  (t (alist-get :class params))))
          (params (org-babel--csharp-preprocess-params params))
          (namespace (alist-get :namespace params))
          (usings (alist-get :usings params))
@@ -180,12 +179,10 @@ recursively create the missing directories of the current working directory's pa
   "Execute a block of Csharp code with org-babel.
 This function is called by `org-babel-execute-src-block'"
   (message "executing Csharp source code block")
-  (org-babel--csharp-preprocess-params params)
-  (let* ((processed-params (org-babel-process-params params))
-         (params (org-babel--csharp-preprocess-params params))
-         (vars (org-babel--get-vars processed-params))
-         (result-params (assq :result-params processed-params))
-         (result-type (assq :result-type processed-params))
+  (let* ((params (org-babel--csharp-preprocess-params params))
+         (vars (org-babel--get-vars params))
+         (result-params (assq :result-params params))
+         (result-type (assq :result-type params))
          (full-body (org-babel-expand-body:csharp body params))
          (project-name (alist-get :project params))
          (namespace (alist-get :namespace params))
