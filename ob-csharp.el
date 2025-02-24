@@ -53,6 +53,7 @@
 (defcustom org-babel-csharp-target-framework "net7.0"
   "The desired target framework to use.")
 
+(defvar org-babel-csharp-additional-project-flags nil
   "Will be passed in the 'PropertyGroup' defining the project.
 
 This is taken as-is. It should be a string in XML-format.")
@@ -84,8 +85,8 @@ It must take one parameter defining the project to perform a restore on."
           (format "\n    <TargetFramework>%s</TargetFramework>" org-babel-csharp-target-framework)
           "\n    <ImplicitUsings>enable</ImplicitUsings>"
           "\n    <Nullable>enable</Nullable>"
-          (when org-babel-csharp-additional-projcect-flags
-            (format "\n    %s" org-babel-csharp-additional-projcect-flags))
+          (when org-babel-csharp-additional-project-flags
+            (format "\n    %s" org-babel-csharp-additional-project-flags))
           "\n  </PropertyGroup>"
           "\n</Project>"))
 
