@@ -231,7 +231,9 @@ This function is called by `org-babel-execute-src-block'"
     (message restore-cmd)
     (org-babel-eval restore-cmd "")
     (message compile-cmd)
-    (org-babel-eval compile-cmd "")
+    (let ((compile-result (org-babel-eval compile-cmd "")))
+      (when (string-match ": error" compile-result)
+        (org-babel-eval-error-notify 1 compile-result)))
     (let ((results (unless (eq project-type 'class)
                      (org-babel-eval run-cmd ""))))
       (when results

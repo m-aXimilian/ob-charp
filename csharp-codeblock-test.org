@@ -120,6 +120,30 @@ Add the language to the loaded ones
 | String | no | such | thing | as | a | fish |
 
 
+* Fail
+The following will show the /*Org-Babel Error Output*/ buffer containing something like
+#+begin_example
+[ Babel evaluation exited with code 1 ]
+MSBuild version 17.6.10+2679cf5a9 for .NET
+  Determining projects to restore...
+  Restored /temp/folders/nk/dbqwhx692_q3hg8s0ycslqsh0000gn/T/babel-Ft896X/g47/g47.csproj (in 35 ms).
+/temp/folders/nk/dbqwhx692_q3hg8s0ycslqsh0000gn/T/babel-Ft896X/g47/Program.cs(9,22): error CS0165: Use of unassigned local variable 'i' [/temp/folders/nk/dbqwhx692_q3hg8s0ycslqsh0000gn/T/babel-Ft896X/g47/g47.csproj]
+
+Build FAILED.
+
+/temp/folders/nk/dbqwhx692_q3hg8s0ycslqsh0000gn/T/babel-Ft896X/g47/Program.cs(9,22): error CS0165: Use of unassigned local variable 'i' [/temp/folders/nk/dbqwhx692_q3hg8s0ycslqsh0000gn/T/babel-Ft896X/g47/g47.csproj]
+    0 Warning(s)
+    1 Error(s)
+
+Time Elapsed 00:00:00.92
+#+end_example
+indicating that the variable ~i~ must be declared when using it in the ~Console.WriteLine~ statement.
+
+#+begin_src csharp
+  int i;
+  Console.WriteLine($"{i}");
+#+end_src
+
 
 * Target Frameworks
 
