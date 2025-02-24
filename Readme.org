@@ -57,8 +57,6 @@ There are a few global variable that will have effect on *every* C# code block.
   
 - =org-babel-csharp-target-framework= :: depending on the installed .NET SDKs (get a list by calling ~dotnet --list-sdks~), this variable can be set as desired. It will have effect on the code block's csproj file. Default is ~net7.0~
 
-- =org-babel-csharp-nuget-config= :: when not ~nil~, this variable will be treated as content of the [[https://learn.microsoft.com/en-us/nuget/reference/nuget-config-file][NuGet.Config]] file. Note that it must be in "encoded" in a valid XML syntax as it will be used as-is.
-
 - =org-babel-csharp-additinal-projcect-flags= :: if the default "minimal viable" csproj configuration does not fit your needs, you can add arbitrary additional configuration here. When not ~nil~ it will be put in it's own ~PropertyGroup~ section of the csproj file. Note that it must be in "encoded" in a valid XML syntax as it will be used as-is.
 
 
@@ -70,6 +68,8 @@ You might want to reset some of these variables to their defaults in case you ne
 - =:main= :: defines whether or not to wrap the code block's content in a default ~void Main(string[] args)~ function. The default is ="yes"=; you can set it to ~"no"~ to inhibit automatic main-function wrapping.
 
 - =:namespace= :: defines the namespace of the code block. It accepts string arguments. If left empty, it will use a string based on ~(gensym)~ to set the project's namespace.
+
+- =:nugetconfig= :: path to a custom /NuGet.config/ file to use for the code block.
 
 - =:project= :: defines a project name used for the csproj file. It accepts string arguments. If left empty, it will use a string based on ~(gensym)~ to set the project name.
 

@@ -40,6 +40,7 @@
 (defvar org-babel-default-header-args:csharp
   '((main . ((yes no)))
     (namespace . :any)
+    (nugetconfig . :any)
     (project . :any)
     (class . ((no nil :any)))
     (references . :any)
@@ -52,13 +53,6 @@
 (defcustom org-babel-csharp-target-framework "net7.0"
   "The desired target framework to use.")
 
-(defvar org-babel-csharp-nuget-config nil
-  "Pass a valid nuget config as documented here
-https://learn.microsoft.com/en-us/nuget/reference/nuget-config-file.
-
-This is taken as-is. It should be a string in XML-format.")
-
-(defvar org-babel-csharp-additional-projcect-flags nil
   "Will be passed in the 'PropertyGroup' defining the project.
 
 This is taken as-is. It should be a string in XML-format.")
@@ -210,7 +204,7 @@ This function is called by `org-babel-execute-src-block'"
          (bin-dir (file-name-concat base-dir "bin"))
          (program-file (file-name-concat base-dir "Program.cs"))
          (project-file (file-name-concat base-dir (concat project-name ".csproj")))
-         (nuget-file (file-name-concat base-dir "NuGet.Config"))
+         (nuget-file (alist-get :nugetconfig params))
          (project-type (if (and (equal "no" (alist-get :main params))
                                 (equal "no" (alist-get :class params)))
                            'class
@@ -228,9 +222,8 @@ This function is called by `org-babel-execute-src-block'"
       (insert
        (let ((refs (alist-get :references params)))
          (org-babel--csharp-generate-project-file refs project-type namespace))))
-    (when org-babel-csharp-nuget-config
-      (with-temp-file nuget-file
-        (insert org-babel-csharp-nuget-config)))
+    (when (and nuget-file (file-exists-p (file-truename nuget-file)))
+      (copy-file nuget-file (file-name-concat base-dir (file-name-nondirectory (file-truename nuget-file)))))
     ;; nuget restore
     (message restore-cmd)
     (org-babel-eval restore-cmd "")
