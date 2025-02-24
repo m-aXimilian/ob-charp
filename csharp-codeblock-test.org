@@ -48,10 +48,8 @@ Add the language to the loaded ones
 - Item 4
 
 
-
-
 * Custom Output Directory
-#+begin_src csharp :dir "./csharp-codeblock-eval" :results raw list
+#+begin_src csharp :results raw list :nugetconfig ./NuGet.config
   Console.WriteLine("Outputs in the subdirectory 'csharp-codeblock-eval'\nof the current working dir");
 #+end_src
 
@@ -121,6 +119,23 @@ Add the language to the loaded ones
 #+RESULTS:
 | String | no | such | thing | as | a | fish |
 
+
+
+* Target Frameworks
+
+#+begin_src csharp :framework net7.0
+  Console.WriteLine("Running dotnet 7");
+#+end_src
+
+#+RESULTS:
+: Running dotnet 7
+
+#+begin_src csharp :framework net6.0
+  Console.WriteLine("Running dotnet 6");
+#+end_src
+
+#+RESULTS:
+: Running dotnet 6
 
 
 * NuGet Package references

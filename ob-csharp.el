@@ -41,6 +41,7 @@
   '((main . ((yes no)))
     (namespace . :any)
     (nugetconfig . :any)
+    (framework . :any)
     (project . :any)
     (class . ((no nil :any)))
     (references . :any)
@@ -50,7 +51,7 @@
 (defcustom org-babel-csharp-compiler "dotnet"
   "The program to call for compiling a csharp project.")
 
-(defcustom org-babel-csharp-target-framework "net7.0"
+(defcustom org-babel-csharp-default-target-framework "net7.0"
   "The desired target framework to use.")
 
 (defvar org-babel-csharp-additional-project-flags nil
@@ -74,7 +75,7 @@ the base directory where the csproj-file resides in."
 It must take one parameter defining the project to perform a restore on."
   :type 'function)
 
-(defun org-babel--csharp-generate-project-file (refs type namespace)
+(defun org-babel--csharp-generate-project-file (refs type namespace framework)
   "Construct a csproj file from a list of REFS based on the project TYPE with the root NAMESPACE."
   (concat "<Project Sdk=\"Microsoft.NET.Sdk\">\n\n  "
           (when refs
@@ -82,7 +83,7 @@ It must take one parameter defining the project to perform a restore on."
           "\n\n  <PropertyGroup>"
           (unless (eq type 'class)
             (format "\n    <OutputType>Exe</OutputType>\n    <RootNamespace>%s</RootNamespace>" namespace))
-          (format "\n    <TargetFramework>%s</TargetFramework>" org-babel-csharp-target-framework)
+          (format "\n    <TargetFramework>%s</TargetFramework>" framework)
           "\n    <ImplicitUsings>enable</ImplicitUsings>"
           "\n    <Nullable>enable</Nullable>"
           (when org-babel-csharp-additional-project-flags
@@ -203,6 +204,7 @@ This function is called by `org-babel-execute-src-block'"
                                        org-babel-temporary-directory)
                                      project-name))
          (bin-dir (file-name-concat base-dir "bin"))
+         (framework (or (alist-get :framework params) org-babel-csharp-default-target-framework))
          (program-file (file-name-concat base-dir "Program.cs"))
          (project-file (file-name-concat base-dir (concat project-name ".csproj")))
          (nuget-file (alist-get :nugetconfig params))
@@ -222,7 +224,7 @@ This function is called by `org-babel-execute-src-block'"
     (with-temp-file project-file
       (insert
        (let ((refs (alist-get :references params)))
-         (org-babel--csharp-generate-project-file refs project-type namespace))))
+         (org-babel--csharp-generate-project-file refs project-type namespace framework))))
     (when (and nuget-file (file-exists-p (file-truename nuget-file)))
       (copy-file nuget-file (file-name-concat base-dir (file-name-nondirectory (file-truename nuget-file)))))
     ;; nuget restore
