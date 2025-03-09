@@ -62,7 +62,7 @@ Add the language to the loaded ones
 
 
 * Commandline Arguments
-#+begin_src csharp :cmdline 2 :usings '("System" "System.Text") :results replace
+#+begin_src csharp :cmdline 7 :usings '("System" "System.Text") :results replace
   var cmdbuild = new StringBuilder();
   foreach(var v in args)
   {
@@ -77,9 +77,36 @@ Add the language to the loaded ones
 #+end_src
 
 #+RESULTS:
-| 2 |
-| 4 |
+|  7 |
+| 14 |
 
+
+
+* Custom Class
+#+begin_src csharp :class no :main no
+  internal class ClassA
+  {
+      public ClassA(int i)
+      {
+          this.AnInt = i;
+      }
+
+      public int AnInt { get; set; }
+  }
+
+  public class Program
+  {
+      public static void Main(string[] args)
+      {
+          ClassA daInstance = new(1);
+
+          Console.WriteLine(daInstance.AnInt);
+      }
+  }
+#+end_src
+
+#+RESULTS:
+: 1
 
 
 * Class Library

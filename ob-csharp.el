@@ -39,10 +39,8 @@
 ;; default header arguments for C#
 (defvar org-babel-default-header-args:csharp
   '((main . ((yes no)))
-    (namespace . :any)
     (nugetconfig . :any)
     (framework . :any)
-    (project . :any)
     (class . ((no nil :any)))
     (references . :any)
     (usings . :any)
@@ -61,12 +59,12 @@
 This is taken as-is. It should be a string in XML-format.")
 
 (defcustom org-babel-csharp-generate-compile-command
-  '(lambda (base-dir bin-dir)
+  '(lambda (dir-proj-sln bin-dir)
      (format "%s build --output %S %S"
-             org-babel-csharp-compiler bin-dir base-dir))
+             org-babel-csharp-compiler bin-dir dir-proj-sln))
   "A function creating the compile command.
 It must take two parameters intended for the target binary directory and
-the base directory where the csproj-file resides in."
+a .sln file, .csproj file, or a base directory where either can be found."
   :type 'function)
 
 (defcustom org-babel-csharp-generate-restore-command
@@ -76,14 +74,13 @@ the base directory where the csproj-file resides in."
 It must take one parameter defining the project to perform a restore on."
   :type 'function)
 
-(defun org-babel--csharp-generate-project-file (refs type namespace framework)
-  "Construct a csproj file from a list of REFS based on the project TYPE with the root NAMESPACE."
+(defun org-babel--csharp-generate-project-file (refs namespace framework)
+  "Construct a csproj file from a list of REFS based with the root NAMESPACE for the target FRAMEWORK."
   (concat "<Project Sdk=\"Microsoft.NET.Sdk\">\n\n  "
           (when refs
             (org-babel--csharp-format-refs refs))
           "\n\n  <PropertyGroup>"
-          (unless (eq type 'class)
-            (format "\n    <OutputType>Exe</OutputType>\n    <RootNamespace>%s</RootNamespace>" namespace))
+          (format "\n    <OutputType>Exe</OutputType>\n    <RootNamespace>%s</RootNamespace>" namespace)
           (format "\n    <TargetFramework>%s</TargetFramework>" framework)
           "\n    <ImplicitUsings>enable</ImplicitUsings>"
           "\n    <Nullable>enable</Nullable>"
@@ -92,30 +89,19 @@ It must take one parameter defining the project to perform a restore on."
           "\n  </PropertyGroup>"
           "\n</Project>"))
 
-(defun org-babel--csharp-preprocess-params (params)
-  "Make sure PARAMS contains a cons-cell for  both `:project' and `:namespace'."
-  (unless (assoc :project params)
-    (push `(:project . ,(symbol-name (gensym))) params))
-  (unless (assoc :namespace params)
-    (push `(:namespace . ,(symbol-name (gensym))) params))
-  params)
-
 (defun org-babel--csharp-format-usings (usings)
   (let ((usinglist))
     (setf usinglist (mapconcat #'(lambda (u) (format "using %s;" u)) usings "\n"))
     usinglist))
 
-(defun org-babel-expand-body:csharp (body params ;; processed-params
-                                          )
+(defun org-babel-expand-body:csharp (body params)
   (let* ((main-p (not (string= (cdr (assq :main params)) "no")))
          (class (pcase (alist-get :class params)
-                  ("no" nil) ;; class explicitly
+                  ("no" nil)
                   (`nil "Program")
                   (t (alist-get :class params))))
-         (params (org-babel--csharp-preprocess-params params))
-         (namespace (alist-get :namespace params))
-         (usings (alist-get :usings params))
-         (vars (org-babel--get-vars params)))
+         (namespace (symbol-name (gensym)))
+         (usings (alist-get :usings params)))
     (with-temp-buffer
       (insert "namespace " namespace ";\n")
       (when usings
@@ -125,7 +111,10 @@ It must take one parameter defining the project to perform a restore on."
       (when main-p
         (insert "static void Main(string[] args)\n{\n"))
       (let ((start (point)))
-        (insert (mapconcat 'org-babel-csharp-var-to-csharp vars "\n") "\n")
+        (insert (if (alist-get :var params)
+                    (mapconcat #'identity (org-babel-variable-assignments:csharp params) "\n")
+                  "")
+                "\n")
         (insert body))
       (when main-p
         (insert "\n}"))
@@ -148,8 +137,6 @@ It must take one parameter defining the project to perform a restore on."
                            (file-truename (car ref))
                          (file-truename ref)))
              (use-fill-ref-p (file-exists-p full-ref)))
-        ;; (unless (file-exists-p full-ref)
-        ;;   (error (format "Reference %S not found" full-ref)))
         (cond
          ((string-search ".csproj" full-ref)
           (setf projectref
@@ -178,31 +165,17 @@ It must take one parameter defining the project to perform a restore on."
                 (format "<ItemGroup>%s\n  </ItemGroup>" systemref)
               ""))))
 
-(defun ensure-directories-exist ()
-  "Ensure the current working directory exists.
-
-Within the context of a possibly non-existing working directory, this will
-recursively create the missing directories of the current working directory's path."
-  (let ((full-name (file-truename ".")))
-    (unless (file-exists-p full-name)
-      (make-directory full-name t))
-    full-name))
-
 (defun org-babel-execute:csharp (body params)
   "Execute a block of Csharp code with org-babel.
 This function is called by `org-babel-execute-src-block'"
   (message "executing Csharp source code block")
-  (let* ((params (org-babel--csharp-preprocess-params params))
-         (vars (org-babel--get-vars params))
-         (result-params (assq :result-params params))
+  (let* ((result-params (assq :result-params params))
          (result-type (assq :result-type params))
          (full-body (org-babel-expand-body:csharp body params))
-         (project-name (alist-get :project params))
-         (namespace (alist-get :namespace params))
+         (project-name  (symbol-name (gensym)))
+         (namespace (symbol-name (gensym)))
          (dir-param (alist-get :dir params))
-         (base-dir (file-name-concat (if dir-param
-                                         (ensure-directories-exist)
-                                       org-babel-temporary-directory)
+         (base-dir (file-name-concat org-babel-temporary-directory
                                      project-name))
          (bin-dir (file-name-concat base-dir "bin"))
          (framework (or (alist-get :framework params) org-babel-csharp-default-target-framework))
@@ -211,13 +184,9 @@ This function is called by `org-babel-execute-src-block'"
          (nuget-file (alist-get :nugetconfig params))
          (cmdline (alist-get :cmdline params))
          (cmdline (if cmdline cmdline ""))
-         (project-type (if (and (equal "no" (alist-get :main params))
-                                (equal "no" (alist-get :class params)))
-                           'class
-                         'executable))
          (restore-cmd (funcall org-babel-csharp-generate-restore-command project-file))
          (compile-cmd (funcall org-babel-csharp-generate-compile-command
-                               (file-truename base-dir)
+                               (file-truename project-file)
                                (file-truename bin-dir)))
          (run-cmd (format "%S %S" (file-truename (file-name-concat bin-dir project-name)) cmdline)))
     (unless (file-exists-p base-dir)
@@ -227,7 +196,7 @@ This function is called by `org-babel-execute-src-block'"
     (with-temp-file project-file
       (insert
        (let ((refs (alist-get :references params)))
-         (org-babel--csharp-generate-project-file refs project-type namespace framework))))
+         (org-babel--csharp-generate-project-file refs namespace framework))))
     (when (and nuget-file (file-exists-p (file-truename nuget-file)))
       (copy-file nuget-file (file-name-concat base-dir (file-name-nondirectory (file-truename nuget-file)))))
     ;; nuget restore
@@ -238,8 +207,7 @@ This function is called by `org-babel-execute-src-block'"
       (when (string-match ": error" compile-result)
         (org-babel-eval-error-notify 1 compile-result)))
     (message run-cmd)
-    (let ((results (unless (eq project-type 'class)
-                     (org-babel-eval run-cmd ""))))
+    (let ((results (org-babel-eval run-cmd "")))
       (when results
         (setq results (org-remove-indentation results))
         ;; results
@@ -254,10 +222,12 @@ This function is called by `org-babel-execute-src-block'"
 	 (org-babel-pick-name
 	  (cdr (assq :rowname-names params)) (cdr (assq :rownames params))))))))
 
-(defun org-babel-csharp-var-to-csharp (var)
+(defun org-babel-variable-assignments:csharp (params)
   "Convert an elisp var into a string of csharp source code
 specifying a var of the same value."
-  (format "var %s = %S;" (car var) (cdr var)))
+  (mapcar
+   #'(lambda (pair) (format "var %s = %S;" (car pair) (cdr pair)))
+   (org-babel--get-vars params)))
 
 (provide 'ob-csharp)
 ;;; ob-csharp.el ends here
