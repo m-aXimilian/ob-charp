@@ -45,7 +45,8 @@
     (project . :any)
     (class . ((no nil :any)))
     (references . :any)
-    (usings . :any))
+    (usings . :any)
+    (cmdline . :any))
   "Csharp specific header arguments.")
 
 (defcustom org-babel-csharp-compiler "dotnet"
@@ -208,6 +209,8 @@ This function is called by `org-babel-execute-src-block'"
          (program-file (file-name-concat base-dir "Program.cs"))
          (project-file (file-name-concat base-dir (concat project-name ".csproj")))
          (nuget-file (alist-get :nugetconfig params))
+         (cmdline (alist-get :cmdline params))
+         (cmdline (if cmdline cmdline ""))
          (project-type (if (and (equal "no" (alist-get :main params))
                                 (equal "no" (alist-get :class params)))
                            'class
@@ -216,7 +219,7 @@ This function is called by `org-babel-execute-src-block'"
          (compile-cmd (funcall org-babel-csharp-generate-compile-command
                                (file-truename base-dir)
                                (file-truename bin-dir)))
-         (run-cmd (format "%S" (file-truename (file-name-concat bin-dir project-name)))))
+         (run-cmd (format "%S %S" (file-truename (file-name-concat bin-dir project-name)) cmdline)))
     (unless (file-exists-p base-dir)
       (make-directory base-dir))
     (with-temp-file program-file
@@ -234,6 +237,7 @@ This function is called by `org-babel-execute-src-block'"
     (let ((compile-result (org-babel-eval compile-cmd "")))
       (when (string-match ": error" compile-result)
         (org-babel-eval-error-notify 1 compile-result)))
+    (message run-cmd)
     (let ((results (unless (eq project-type 'class)
                      (org-babel-eval run-cmd ""))))
       (when results

@@ -1,3 +1,5 @@
+# -*- org-confirm-babel-evaluate: nil -*-
+#+startup: fold indent
 * Setup
 
 Add the working directory of this repository to the load path (adapt the path to the repo's root directory if that is different on the respective machine)
@@ -56,6 +58,27 @@ Add the language to the loaded ones
 #+RESULTS:
 - Outputs in the subdirectory 'csharp-codeblock-eval'
 - of the current working dir
+
+
+
+* Commandline Arguments
+#+begin_src csharp :cmdline 2 :usings '("System" "System.Text") :results replace
+  var cmdbuild = new StringBuilder();
+  foreach(var v in args)
+  {
+      cmdbuild.Append($" {v}");
+  }
+  int argInt = 0;
+  Int32.TryParse(args[0], out argInt);
+
+  Console.WriteLine(cmdbuild.ToString());
+
+  Console.WriteLine(argInt * 2);
+#+end_src
+
+#+RESULTS:
+| 2 |
+| 4 |
 
 
 
