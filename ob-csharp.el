@@ -48,15 +48,16 @@
   "Csharp specific header arguments.")
 
 (defcustom org-babel-csharp-compiler "dotnet"
-  "The program to call for compiling a csharp project.")
+  "The program to call for compiling a csharp project."
+  :group 'org-babel
+  :package-version '(Org. "9.7")
+  :type 'string)
 
 (defcustom org-babel-csharp-default-target-framework "net7.0"
-  "The desired target framework to use.")
-
-(defvar org-babel-csharp-additional-project-flags nil
-  "Will be passed in the 'PropertyGroup' defining the project.
-
-This is taken as-is. It should be a string in XML-format.")
+  "The desired target framework to use."
+  :group 'org-babel
+  :package-version '(Org. "9.7")
+  :type 'string)
 
 (defcustom org-babel-csharp-generate-compile-command
   '(lambda (dir-proj-sln bin-dir)
@@ -65,6 +66,8 @@ This is taken as-is. It should be a string in XML-format.")
   "A function creating the compile command.
 It must take two parameters intended for the target binary directory and
 a .sln file, .csproj file, or a base directory where either can be found."
+  :group 'org-babel
+  :package-version '(Org. "9.7")
   :type 'function)
 
 (defcustom org-babel-csharp-generate-restore-command
@@ -72,7 +75,14 @@ a .sln file, .csproj file, or a base directory where either can be found."
      (format "%s restore %S" org-babel-csharp-compiler project-file))
   "A function creating a project restore command.
 It must take one parameter defining the project to perform a restore on."
+  :group 'org-babel
+  :package-version '(Org. "9.7")
   :type 'function)
+
+(defvar org-babel-csharp-additional-project-flags nil
+  "Will be passed in the 'PropertyGroup' defining the project.
+
+This is taken as-is. It should be a string in XML-format.")
 
 (defun org-babel--csharp-generate-project-file (refs namespace framework)
   "Construct a csproj file from a list of REFS based with the root NAMESPACE for the target FRAMEWORK."
