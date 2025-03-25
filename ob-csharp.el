@@ -90,11 +90,18 @@ It must take one parameter defining the project to perform a restore on."
           "\n</Project>"))
 
 (defun org-babel--csharp-format-usings (usings)
+  "Format USINGS into a string suitable for inclusion in a C# source file.
+
+USINGS should be a list of strings, each representing a using directive.
+Returns a string with each using directive on a new line."
   (let ((usinglist))
     (setf usinglist (mapconcat #'(lambda (u) (format "using %s;" u)) usings "\n"))
     usinglist))
 
 (defun org-babel-expand-body:csharp (body params)
+  "Expand a block of C# code in BODY according to PARAMS.
+
+See `org-babel-default-header-args:csharp' for available parameters."
   (let* ((main-p (not (string= (cdr (assq :main params)) "no")))
          (class (pcase (alist-get :class params)
                   ("no" nil)
@@ -123,6 +130,16 @@ It must take one parameter defining the project to perform a restore on."
       (buffer-string))))
 
 (defun org-babel--csharp-format-refs (refs)
+  "Format REFS into a string suitable for inclusion in a .csproj file.
+
+REFS should be a list of strings or cons cells, each representing a reference.
+If an entry is a cons cell, the car is the reference name and the cdr is the version.
+
+Returns a formatted string representing the references, categorized into
+project reference, assembly reference, and package reference.
+Reference types are distinguished by their file extension.
+'.csproj' is interpreted as a project reference, '.dll' as an assembly reference.
+When a version is present, it will be treated as a package reference."
   (let ((projectref)
         (assemblyref)
         (systemref))
@@ -223,8 +240,7 @@ This function is called by `org-babel-execute-src-block'"
 	  (cdr (assq :rowname-names params)) (cdr (assq :rownames params))))))))
 
 (defun org-babel-variable-assignments:csharp (params)
-  "Convert an elisp var into a string of csharp source code
-specifying a var of the same value."
+  "Return a list of C# variable assignments from header arguments."
   (mapcar
    #'(lambda (pair) (format "var %s = %S;" (car pair) (cdr pair)))
    (org-babel--get-vars params)))
