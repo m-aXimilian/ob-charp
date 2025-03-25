@@ -47,6 +47,22 @@
     (cmdline . :any))
   "Csharp specific header arguments.")
 
+(defun org-babel--csharp-default-compile-command (dir-proj-sln bin-dir)
+  "Construct the default compilation command for C#.
+
+DIR-PROJ-SLN is either a directory containing a '.csproj' or '.sln' file
+or a full path to either of these.
+BIN-DIR is the directory for the compiled output."
+  (format "%s build --output %S %S"
+          org-babel-csharp-compiler bin-dir dir-proj-sln))
+
+(defun org-babel--csharp-default-restore-command (project-file)
+  "Construct the default restore command for C# projects.
+
+PROJECT-FILE is a path to a '.csproj' file on which the restore command
+takes effect."
+  (format "%s restore %S" org-babel-csharp-compiler project-file))
+
 (defcustom org-babel-csharp-compiler "dotnet"
   "The program to call for compiling a csharp project."
   :group 'org-babel
@@ -60,10 +76,9 @@
   :type 'string)
 
 (defcustom org-babel-csharp-generate-compile-command
-  '(lambda (dir-proj-sln bin-dir)
-     (format "%s build --output %S %S"
-             org-babel-csharp-compiler bin-dir dir-proj-sln))
+  #'org-babel--csharp-default-compile-command
   "A function creating the compile command.
+
 It must take two parameters intended for the target binary directory and
 a .sln file, .csproj file, or a base directory where either can be found."
   :group 'org-babel
@@ -71,9 +86,9 @@ a .sln file, .csproj file, or a base directory where either can be found."
   :type 'function)
 
 (defcustom org-babel-csharp-generate-restore-command
-  '(lambda (project-file)
-     (format "%s restore %S" org-babel-csharp-compiler project-file))
+  #'org-babel--csharp-default-restore-command
   "A function creating a project restore command.
+
 It must take one parameter defining the project to perform a restore on."
   :group 'org-babel
   :package-version '(Org. "9.7")
