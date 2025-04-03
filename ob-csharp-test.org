@@ -1,0 +1,85 @@
+# -*- org-confirm-babel-evaluate: nil -*-
+:PROPERTIES:
+:ID:       FC200076-9BB6-4070-B078-BB053262A8CD
+:END:
+#+OPTIONS: ^:nil
+#+title: A collection of examples for  C# code-block tests
+
+#+name: int-input
+#+begin_src csharp :var i=42
+  Console.WriteLine(i);
+#+end_src
+
+#+name: float-input
+#+begin_src csharp :var f=3.14
+  Console.WriteLine(f);
+#+end_src
+
+#+name: string-input
+#+begin_src csharp :var s="pi"
+  Console.WriteLine(s);
+#+end_src
+
+#+name: list-output
+#+begin_src csharp :results raw list
+  Console.WriteLine("Item 1");
+  Console.WriteLine("Item 2");
+  Console.WriteLine("Item 3");
+  Console.WriteLine("Item 4");
+#+end_src
+
+#+name: commandline
+#+begin_src csharp :cmdline 3 :usings '("System" "System.Text")
+  int argInt = 0;
+  Int32.TryParse(args[0], out argInt);
+
+  Console.WriteLine(argInt * 14);
+#+end_src
+
+#+name: custom-class-main
+#+begin_src csharp :class no :main no
+  internal class ClassA
+  {
+      public ClassA(int i)
+      {
+          this.AnInt = i;
+      }
+
+      public int AnInt { get; set; }
+  }
+
+  public class Program
+  {
+      public static void Main(string[] args)
+      {
+          ClassA daInstance = new(123);
+
+          Console.WriteLine(daInstance.AnInt);
+      }
+  }
+#+end_src
+
+#+name: tabular
+#+begin_src csharp :results table
+  var test = "String";
+  Console.WriteLine($"In, questo, mondo, una, cosa");
+  Console.WriteLine($"si, perde,  una,   si, trova");
+#+end_src
+
+#+name: nuget-reference
+#+begin_src csharp :references '(("Newtonsoft.Json" . "13.0.3")) :usings '("System" "Newtonsoft.Json") :main no :project "json-test" :results verbatim
+  public class DTO
+  {
+      public int TheInt { get; set; }
+      public string TheString { get; set; }
+  }
+
+  static void Main(string[] args)
+  {
+      DTO myDto = new() { TheInt = 12, TheString = "ok" };
+
+      string json = JsonConvert.SerializeObject(myDto, Formatting.Indented);
+      Console.WriteLine($"{json}");
+  }
+#+end_src
+
