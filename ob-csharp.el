@@ -210,7 +210,6 @@ When a version is present, it will be treated as a package reference."
 (defun org-babel-execute:csharp (body params)
   "Execute a block of Csharp code with org-babel.
 This function is called by `org-babel-execute-src-block'"
-  (message "executing Csharp source code block")
   (let* ((result-params (assq :result-params params))
          (result-type (assq :result-type params))
          (full-body (org-babel-expand-body:csharp body params))
@@ -242,13 +241,10 @@ This function is called by `org-babel-execute-src-block'"
     (when (and nuget-file (file-exists-p (file-truename nuget-file)))
       (copy-file nuget-file (file-name-concat base-dir (file-name-nondirectory (file-truename nuget-file)))))
     ;; nuget restore
-    (message restore-cmd)
     (org-babel-eval restore-cmd "")
-    (message compile-cmd)
     (let ((compile-result (org-babel-eval compile-cmd "")))
       (when (string-match ": error" compile-result)
         (org-babel-eval-error-notify 1 compile-result)))
-    (message run-cmd)
     (let ((results (org-babel-eval run-cmd "")))
       (when results
         (setq results (org-remove-indentation results))
