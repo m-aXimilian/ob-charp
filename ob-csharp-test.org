@@ -6,22 +6,22 @@
 #+title: A collection of examples for  C# code-block tests
 
 #+name: int-input
-#+begin_src csharp :var i=42
+#+begin_src csharp :var i=42 :results silent
   Console.WriteLine(i);
 #+end_src
 
 #+name: float-input
-#+begin_src csharp :var f=3.14
+#+begin_src csharp :var f=3.14 :results silent
   Console.WriteLine(f);
 #+end_src
 
 #+name: string-input
-#+begin_src csharp :var s="pi"
+#+begin_src csharp :var s="pi" :results silent
   Console.WriteLine(s);
 #+end_src
 
 #+name: list-output
-#+begin_src csharp :results raw list
+#+begin_src csharp :results raw list silent
   Console.WriteLine("Item 1");
   Console.WriteLine("Item 2");
   Console.WriteLine("Item 3");
@@ -29,7 +29,7 @@
 #+end_src
 
 #+name: commandline
-#+begin_src csharp :cmdline 3 :usings '("System" "System.Text")
+#+begin_src csharp :cmdline 3 :usings '("System" "System.Text") :results silent
   int argInt = 0;
   Int32.TryParse(args[0], out argInt);
 
@@ -37,7 +37,7 @@
 #+end_src
 
 #+name: custom-class-main
-#+begin_src csharp :class no :main no
+#+begin_src csharp :class no :main no :results silent
   internal class ClassA
   {
       public ClassA(int i)
@@ -60,14 +60,14 @@
 #+end_src
 
 #+name: tabular
-#+begin_src csharp :results table
+#+begin_src csharp :results table silent
   var test = "String";
   Console.WriteLine($"In, questo, mondo, una, cosa");
   Console.WriteLine($"si, perde,  una,   si, trova");
 #+end_src
 
 #+name: nuget-reference
-#+begin_src csharp :references '(("Newtonsoft.Json" . "13.0.3")) :usings '("System" "Newtonsoft.Json") :main no :project "json-test" :results verbatim
+#+begin_src csharp :references '(("Newtonsoft.Json" . "13.0.3")) :usings '("System" "Newtonsoft.Json") :main no :project "json-test" :results verbatim silent
   public class DTO
   {
       public int TheInt { get; set; }

@@ -132,7 +132,7 @@ See `org-babel-default-header-args:csharp' for available parameters."
                   ("no" nil)
                   (`nil "Program")
                   (t (alist-get :class params))))
-         (namespace (symbol-name (gensym)))
+         (namespace (make-temp-name "obcs"))
          (usings (alist-get :usings params)))
     (with-temp-buffer
       (insert "namespace " namespace ";\n")
@@ -214,8 +214,8 @@ This function is called by `org-babel-execute-src-block'"
   (let* ((result-params (assq :result-params params))
          (result-type (assq :result-type params))
          (full-body (org-babel-expand-body:csharp body params))
-         (project-name  (symbol-name (gensym)))
-         (namespace (symbol-name (gensym)))
+         (project-name  (make-temp-name "obcs"))
+         (namespace (make-temp-name "obcs"))
          (dir-param (alist-get :dir params))
          (base-dir (file-name-concat org-babel-temporary-directory
                                      project-name))
