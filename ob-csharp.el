@@ -101,6 +101,8 @@ This is taken as-is. It should be a string in XML-format.")
 
 (defun org-babel--csharp-generate-project-file (refs namespace framework)
   "Construct a csproj file from a list of REFS based with the root NAMESPACE for the target FRAMEWORK."
+  (unless (and namespace framework)
+    (error "namespace and framework cannot be nil"))
   (concat "<Project Sdk=\"Microsoft.NET.Sdk\">\n\n  "
           (when refs
             (org-babel--csharp-format-refs refs))
@@ -119,9 +121,11 @@ This is taken as-is. It should be a string in XML-format.")
 
 USINGS should be a list of strings, each representing a using directive.
 Returns a string with each using directive on a new line."
-  (let ((usinglist))
-    (setf usinglist (mapconcat #'(lambda (u) (format "using %s;" u)) usings "\n"))
-    usinglist))
+  (mapconcat
+   #'(lambda (u)
+       (unless (stringp u) (error "Usings must be of type string."))
+       (format "using %s;" u))
+   usings "\n"))
 
 (defun org-babel-expand-body:csharp (body params)
   "Expand a block of C# code in BODY according to PARAMS.

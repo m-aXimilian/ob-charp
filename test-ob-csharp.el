@@ -29,9 +29,73 @@
 (unless (featurep 'ob-csharp)
   (signal 'missing-test-dependency '("Support for C# code blocks")))
 
-(ert-deftest test-ob-csharp/lackmus ()
-  (should (= 1 1)))
+(ert-deftest test-ob-csharp/default-compile-command-created ()
+  "The default compile command function creates expected command."
+  (should (string= (org-babel--csharp-default-compile-command "/tmp/placeholder/dummy.csproj" "/tmp/placeholder/bin")
+                   "dotnet build --output \"/tmp/placeholder/bin\" \"/tmp/placeholder/dummy.csproj\"")))
 
+(ert-deftest test-ob-csharp/customized-compile-command-used ()
+  "User specified compile command is used."
+  (let* ((custom-fun (lambda (p b) (format "custom-compiler %s %s" p b)))
+         (project "/tmp/placeholder/dummy.csproj")
+         (binary "/tmp/placeholder/bin")
+         (default-command (funcall org-babel-csharp-generate-compile-command project binary))
+         (cmd-backup org-babel-csharp-generate-compile-command))
+    (setq org-babel-csharp-generate-compile-command custom-fun)
+    (should-not (string=
+                 default-command
+                 (funcall org-babel-csharp-generate-compile-command project binary)))
+    (should (string= (funcall custom-fun project binary)
+                     (funcall org-babel-csharp-generate-compile-command project binary)))
+    ;; reset customized variable
+    (setq org-babel-csharp-generate-compile-command cmd-backup)))
+
+(ert-deftest test-ob-csharp/default-restore-command-created ()
+  "The default project restore command function creates expected command."
+  (should (string= (org-babel--csharp-default-restore-command "/tmp/placeholder/dummy.csproj")
+                   "dotnet restore \"/tmp/placeholder/dummy.csproj\"")))
+
+(ert-deftest test-ob-csharp/customized-restore-command-used ()
+  "User specified compile command is used."
+  (let* ((custom-fun (lambda (p) (format "custom-restore %s" p)))
+         (project "/tmp/placeholder/dummy.csproj")
+         (default-command (funcall org-babel-csharp-generate-restore-command project))
+         (cmd-backup org-babel-csharp-generate-restore-command))
+    (setq org-babel-csharp-generate-restore-command custom-fun)
+    (should-not (string=
+                 default-command
+                 (funcall org-babel-csharp-generate-restore-command project)))
+    (should (string= (funcall custom-fun project)
+                     (funcall org-babel-csharp-generate-restore-command project)))
+    ;; reset customized variable
+    (setq org-babel-csharp-generate-restore-command cmd-backup)))
+
+(ert-deftest test-ob-csharp/generate-project-file ()
+  "Test intended parameterization of the project file generator."
+  (should (eq 'string
+              (type-of (org-babel--csharp-generate-project-file nil "namespACE" "net6.0"))))
+  (should (eq 'string
+              (type-of (org-babel--csharp-generate-project-file '("a-ref") "namespACE" "net6.0"))))
+  (should (eq 'string
+              (type-of (org-babel--csharp-generate-project-file '("a-ref" "b-ref") "namespACE" "net6.0"))))
+  (should-error (org-babel--csharp-generate-project-file nil nil "net6.0"))
+  (should-error (org-babel--csharp-generate-project-file nil "namespACE" nil))
+  (should-error (org-babel--csharp-generate-project-file nil nil nil))
+  (should-error (org-babel--csharp-generate-project-file '(nil) "namespACE" "net6.0"))
+  (should-error (org-babel--csharp-generate-project-file "a-ref" "namespACE" "net6.0")))
+
+(ert-deftest test-ob-csharp/format-usings ()
+  "Test intended parameterization of the C# using formatter."
+  (should (string=
+           "using namespaceA;\nusing namesaceB;"
+           (org-babel--csharp-format-usings '("namespaceA" "namesaceB"))))
+  (should (string=
+           ""
+           (org-babel--csharp-format-usings nil)))
+  (should-error (org-babel--csharp-format-usings '("namespaceA" nil "namesaceB")))
+  (should-error (org-babel--csharp-format-usings "singleUsing")))
+
+;; requires dotnet compiler
 (org-test-for-executable org-babel-csharp-compiler)
 
 (defun find-dotnet-version ()
