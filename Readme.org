@@ -67,13 +67,9 @@ You might want to reset some of these variables to their defaults in case you ne
 
 - =:main= :: defines whether or not to wrap the code block's content in a default ~void Main(string[] args)~ function. The default is ="yes"=; you can set it to ~"no"~ to inhibit automatic main-function wrapping.
 
-- =:namespace= :: defines the namespace of the code block. It accepts string arguments. If left empty, it will use a string based on ~(gensym)~ to set the project's namespace.
-
 - =:nugetconfig= :: path to a custom /NuGet.config/ file to use for the code block.
 
 - =:framework= :: the [[https://learn.microsoft.com/en-us/dotnet/standard/frameworks][target framework]] of the code block.
-
-- =:project= :: defines a project name used for the csproj file. It accepts string arguments. If left empty, it will use a string based on ~(gensym)~ to set the project name.
 
 - =:class= :: defines the name of the program wrapper class. It accepts string arguments. If left empty, it will use the default name ~Program~ as a program wrapper class name. A value of ~"no"~ will inhibit a wrapper class.
 
@@ -86,6 +82,7 @@ You might want to reset some of these variables to their defaults in case you ne
   + a convenience feature when you set ~:class "no" :main "no"~ (as you could type ~using project.a.featureb;~ at the start of the code block)
   + a necessity if the main function and the wrapper class are generated automatically and you need to pass in namespace dependencies (and don't want to write fully qualified names for usages of the respective external dependencies)
 
+- =:cmdline= :: command line arguments that will be passed to the compiled executable of the respective source block.
 
 * Examples
 ** Minimal Viable C# Code Block
@@ -104,20 +101,16 @@ The following will compile and evaluate (as an ~<OutputType>Exe</OutputType>~ pr
 #+RESULTS:
 : Hello from C#
 
-** Name and Path Configuration
-The project name can be set with the =:project= header argument. The generated /.csproj/ file will have the name configured here. If not configured with the =:namespace= header argument, the namespace of the generated project will be a random one based on ~(gensym)~.
+** Custom Class
 By default, the code within the code block is wrapped in a class called ~Program~. This name can be configured in with the =:class= header argument. Whether or not an automated ~Main~ function should be created can be configured in the =:main= header argument (everything else than "no" will result in an automatic main function).
-Lastly, when not specified differently with the =:dir= argument, the resulting generated code will be put in the current working directory (the directory where the code block containing org-file is located).
+The generated code will be put in a temporary directory governed by ~org-babel-temporary-directory~.
 
 The following code block will be
-+ at subdirectory ~my-test~
-+ in a project called ~MyTest~
-+ in namespace ~My.Test.NameSpace~
 + wrapped in a class ~MyTest~
 + completely wrapped in a ~static void Main(string[] args)~ function
 
 #+begin_example
-#+begin_src csharp :dir "my-test" :project "MyTest" :namespace "My.Test.NameSpace" :class "MyClass" :usings '("System" "System.Diagnostics" "System.Reflection") :main yes
+#+begin_src csharp :class "MyClass" :usings '("System" "System.Diagnostics" "System.Reflection") :main yes
   string projectName = Assembly.GetCallingAssembly().GetName().Name;
   string projectDirectory = "my-test";
   var stackTrace = new StackTrace();
@@ -132,25 +125,25 @@ The following code block will be
 #+end_src
 #+end_example
 
-#+begin_src csharp :dir "my-test" :project "MyTest" :namespace "My.Test.NameSpace" :class "MyClass" :usings '("System" "System.Diagnostics" "System.Reflection") :main yes :exports results
+#+begin_src csharp :class "MyClass" :usings '("System" "System.Diagnostics" "System.Reflection") :main yes :exports results
   string projectName = Assembly.GetCallingAssembly().GetName().Name;
-  string projectDirectory = "my-test";
+  string dllName = Path.GetFileName(Assembly.GetEntryAssembly().Location);
   var stackTrace = new StackTrace();
   var firstStackFrame = stackTrace.GetFrame(0);
   string methodName = firstStackFrame.GetMethod().ToString();
   string className = firstStackFrame.GetMethod().DeclaringType.ToString();
 
-  Console.WriteLine($"Directory:\t{projectDirectory}");
+  Console.WriteLine($"Dll Name:\t{dllName}");
   Console.WriteLine($"Project:\t{projectName}");
   Console.WriteLine($"Class:\t{className}");
   Console.WriteLine($"Method:\t{methodName}");
 #+end_src
 
 #+RESULTS:
-| Directory: | my-test                    |
-| Project:   | MyTest                     |
-| Class:     | My.Test.NameSpace.MyClass  |
-| Method:    | Void Main(System.String[]) |
+| Dll Name: | obcsRELp52.dll             |
+| Project:  | obcsRELp52                 |
+| Class:    | obcsi7SYVW.MyClass         |
+| Method:   | Void Main(System.String[]) |
 
 ** Input Variables
 Idiomatic variable types are detected automatically. The following code block indicates the correct detection of
@@ -159,7 +152,7 @@ Idiomatic variable types are detected automatically. The following code block in
 + ~System.String~
 
 #+begin_example
-#+begin_src csharp :project "type-tests" :namespace "wow" :var a=3 b="pizza" c=5.3 d=-1
+#+begin_src csharp :var a=3 b="pizza" c=5.3 d=-1
   int myInt = 1;
   string PrintTypeVal<T>(T tp)
   {
@@ -172,7 +165,7 @@ Idiomatic variable types are detected automatically. The following code block in
 #+end_src
 #+end_example
 
-#+begin_src csharp :project "type-tests" :namespace "wow" :var a=3 b="pizza" c=5.3 d=-1 :exports results
+#+begin_src csharp :var a=3 b="pizza" c=5.3 d=-1 :exports results
   int myInt = 1;
   string PrintTypeVal<T>(T tp)
   {
@@ -216,157 +209,6 @@ In the above code blocks, tabular output was used implicitly. List output is sup
 - Item 3
 - Item 4
 
-** Class Library, Project and Assembly References
-Code blocks can be configured as "class libraries", i.e., not being interpreted as executable projects. This setting is implicit an can be achieved by setting =:class= and =:main= to none. The resulting /.csproj/ will not contain the line ~<OutputType>Exe</OutputType>~ and thus no /.exe/ file will be produced. The output will be an assembly (/.dll/).
-Other code blocks can either reference the /.csproj/ file and declare them as project references or reference the assemblies directly as assembly references.
-The following code block defines two interfaces ~ITest~ and ~IStringTest~ as well as an idiomatic ~Printer~ class for showcasing purposes.
-
-#+begin_example
-#+begin_src csharp :main no :class no :project "MyClassLib" :namespace "My.Class.Library" :dir "./my-class-lib" :results silent
-  public class Printer
-  {
-      static public void WriteInt(int writeInt)
-      {
-          Console.WriteLine(writeInt);
-      }
-  }
-
-  public interface ITest
-  {
-      public int MyInt { get; set; }
-  }
-
-  public interface IStringTest
-  {
-      public string MyString { get; set; }
-  }
-#+end_src
-#+end_example
-
-#+begin_src csharp :main no :class no :project "MyClassLib" :namespace "My.Class.Library" :dir "./my-class-lib" :results silent :exports results
-  public class Printer
-  {
-      static public void WriteInt(int writeInt)
-      {
-          Console.WriteLine(writeInt);
-      }
-  }
-
-  public interface ITest
-  {
-      public int MyInt { get; set; }
-  }
-
-  public interface IStringTest
-  {
-      public string MyString { get; set; }
-  }
-#+end_src
-
-
-
-The following code block uses the class library code block "MyClassLib" as a project reference via its /MyClassLib.csproj/ file.
-Note that we must declare the using of the ~My.Class.Library~ namespace in the =:usings= header argument to make this work.
-
-#+begin_example
-#+begin_src csharp :main no :references '( "./my-class-lib/MyClassLib/MyClassLib.csproj") :class "Prog" :usings '("My.Class.Library")
-  internal class TestClass : ITest, IStringTest
-  {
-      public TestClass()
-      {
-          this.MyInt = 42;
-          this.MyString = "Project reference";
-      }
-
-      public int MyInt { get; set; }
-
-      public string MyString { get; set; }
-  }
-
-  public static void Main(string[] args)
-  {
-      TestClass myTest = new TestClass();
-      Console.Write($"from {myTest.MyString}: ");
-      Printer.WriteInt(myTest.MyInt);
-  }
-#+end_src
-#+end_example
-
-#+begin_src csharp :main no :references '( "./my-class-lib/MyClassLib/MyClassLib.csproj") :class "Prog" :usings '("My.Class.Library") :exports results
-  internal class TestClass : ITest, IStringTest
-  {
-      public TestClass()
-      {
-          this.MyInt = 42;
-          this.MyString = "Project reference";
-      }
-
-      public int MyInt { get; set; }
-
-      public string MyString { get; set; }
-  }
-
-  public static void Main(string[] args)
-  {
-      TestClass myTest = new TestClass();
-      Console.Write($"from {myTest.MyString}: ");
-      Printer.WriteInt(myTest.MyInt);
-  }
-#+end_src
-
-#+RESULTS:
-: from Project reference: 42
-
-We can achieve the same by referencing the /MyClassLib.dll/ as an assembly reference:
-
-#+begin_example
-#+begin_src csharp :main no :references '( "./my-class-lib/MyClassLib/bin/MyClassLib.dll") :class "Prog" :usings '("My.Class.Library")
-  internal class TestClass : ITest, IStringTest
-  {
-      public TestClass()
-      {
-          this.MyInt = 42;
-          this.MyString = "Assembly reference";
-      }
-
-      public int MyInt { get; set; }
-
-      public string MyString { get; set; }
-  }
-
-  public static void Main(string[] args)
-  {
-      TestClass myTest = new TestClass();
-      Console.Write($"from {myTest.MyString}: ");
-      Printer.WriteInt(myTest.MyInt);
-  }
-#+end_src
-#+end_example
-
-#+begin_src csharp :main no :references '( "./my-class-lib/MyClassLib/bin/MyClassLib.dll") :class "Prog" :usings '("My.Class.Library") :exports results
-  internal class TestClass : ITest, IStringTest
-  {
-      public TestClass()
-      {
-          this.MyInt = 42;
-          this.MyString = "Assembly reference";
-      }
-
-      public int MyInt { get; set; }
-
-      public string MyString { get; set; }
-  }
-
-  public static void Main(string[] args)
-  {
-      TestClass myTest = new TestClass();
-      Console.Write($"from {myTest.MyString}: ");
-      Printer.WriteInt(myTest.MyInt);
-  }
-#+end_src
-
-#+RESULTS:
-: from Assembly reference: 42
 
 ** NuGet References
 With the following code block, we create a string serialization based on the [[https://www.newtonsoft.com/json][Newtonsoft.Json]] NuGet package. Since this is available from [[https://www.nuget.org/][nuget.org]], no additional configuration is needed.
