@@ -73,16 +73,15 @@
 (ert-deftest test-ob-csharp/generate-project-file ()
   "Test intended parameterization of the project file generator."
   (should (eq 'string
-              (type-of (org-babel--csharp-generate-project-file nil "namespACE" "net6.0"))))
+              (type-of (org-babel--csharp-generate-project-file nil "net6.0"))))
   (should (eq 'string
-              (type-of (org-babel--csharp-generate-project-file '("a-ref") "namespACE" "net6.0"))))
+              (type-of (org-babel--csharp-generate-project-file '("a-ref") "net6.0"))))
   (should (eq 'string
-              (type-of (org-babel--csharp-generate-project-file '("a-ref" "b-ref") "namespACE" "net6.0"))))
-  (should-error (org-babel--csharp-generate-project-file nil nil "net6.0"))
-  (should-error (org-babel--csharp-generate-project-file nil "namespACE" nil))
-  (should-error (org-babel--csharp-generate-project-file nil nil nil))
-  (should-error (org-babel--csharp-generate-project-file '(nil) "namespACE" "net6.0"))
-  (should-error (org-babel--csharp-generate-project-file "a-ref" "namespACE" "net6.0")))
+              (type-of (org-babel--csharp-generate-project-file '("a-ref" "b-ref") "net6.0"))))
+  (should-error (org-babel--csharp-generate-project-file nil nil))
+  (should-error (org-babel--csharp-generate-project-file nil nil))
+  (should-error (org-babel--csharp-generate-project-file '(nil) "net6.0"))
+  (should-error (org-babel--csharp-generate-project-file "a-ref" "net6.0")))
 
 (ert-deftest test-ob-csharp/format-usings ()
   "Test intended parameterization of the C# using formatter."

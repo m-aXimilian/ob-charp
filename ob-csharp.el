@@ -99,15 +99,15 @@ It must take one parameter defining the project to perform a restore on."
 
 This is taken as-is. It should be a string in XML-format.")
 
-(defun org-babel--csharp-generate-project-file (refs namespace framework)
-  "Construct a csproj file from a list of REFS based with the root NAMESPACE for the target FRAMEWORK."
-  (unless (and namespace framework)
-    (error "namespace and framework cannot be nil"))
+(defun org-babel--csharp-generate-project-file (refs framework)
+  "Construct a csproj file from a list of REFS for the target FRAMEWORK."
+  (unless framework
+    (error "framework cannot be nil"))
   (concat "<Project Sdk=\"Microsoft.NET.Sdk\">\n\n  "
           (when refs
             (org-babel--csharp-format-refs refs))
           "\n\n  <PropertyGroup>"
-          (format "\n    <OutputType>Exe</OutputType>\n    <RootNamespace>%s</RootNamespace>" namespace)
+          "\n    <OutputType>Exe</OutputType>\n"
           (format "\n    <TargetFramework>%s</TargetFramework>" framework)
           "\n    <ImplicitUsings>enable</ImplicitUsings>"
           "\n    <Nullable>enable</Nullable>"
@@ -218,7 +218,6 @@ This function is called by `org-babel-execute-src-block'"
          (result-type (assq :result-type params))
          (full-body (org-babel-expand-body:csharp body params))
          (project-name  (make-temp-name "obcs"))
-         (namespace (make-temp-name "obcs"))
          (dir-param (alist-get :dir params))
          (base-dir (file-name-concat org-babel-temporary-directory
                                      project-name))
@@ -241,7 +240,7 @@ This function is called by `org-babel-execute-src-block'"
     (with-temp-file project-file
       (insert
        (let ((refs (alist-get :references params)))
-         (org-babel--csharp-generate-project-file refs namespace framework))))
+         (org-babel--csharp-generate-project-file refs framework))))
     (when (and nuget-file (file-exists-p (file-truename nuget-file)))
       (copy-file nuget-file (file-name-concat base-dir (file-name-nondirectory (file-truename nuget-file)))))
     ;; nuget restore
