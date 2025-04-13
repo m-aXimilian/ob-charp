@@ -67,9 +67,9 @@ You might want to reset some of these variables to their defaults in case you ne
 
 - =:main= :: defines whether or not to wrap the code block's content in a default ~void Main(string[] args)~ function. The default is ="yes"=; you can set it to ~"no"~ to inhibit automatic main-function wrapping.
 
-- =:nugetconfig= :: path to a custom /NuGet.config/ file to use for the code block.
+- =:nugetconfig= :: path to a custom /NuGet.config/ file to use for the code block. This is useful if you have a local *.nupkg or a feed different from [[nuget.org]] and want to use it in your source block.
 
-- =:framework= :: the [[https://learn.microsoft.com/en-us/dotnet/standard/frameworks][target framework]] of the code block.
+- =:framework= :: the [[https://learn.microsoft.com/en-us/dotnet/standard/frameworks][target framework]] of the code block. See ~org-babel-csharp-target-framework~ for permanent configuration of this.
 
 - =:class= :: defines the name of the program wrapper class. It accepts string arguments. If left empty, it will use the default name ~Program~ as a program wrapper class name. A value of ~"no"~ will inhibit a wrapper class.
 
@@ -83,6 +83,7 @@ You might want to reset some of these variables to their defaults in case you ne
   + a necessity if the main function and the wrapper class are generated automatically and you need to pass in namespace dependencies (and don't want to write fully qualified names for usages of the respective external dependencies)
 
 - =:cmdline= :: command line arguments that will be passed to the compiled executable of the respective source block.
+
 
 * Examples
 ** Minimal Viable C# Code Block
@@ -208,7 +209,6 @@ In the above code blocks, tabular output was used implicitly. List output is sup
 - Item 2
 - Item 3
 - Item 4
-
 
 ** NuGet References
 With the following code block, we create a string serialization based on the [[https://www.newtonsoft.com/json][Newtonsoft.Json]] NuGet package. Since this is available from [[https://www.nuget.org/][nuget.org]], no additional configuration is needed.

@@ -109,7 +109,7 @@
   "The most recent dotnet version of the host system.")
 
 (defun try-set-dotnet-version (version)
-  ""
+  "Set the default framework version."
   (when version
     (setq org-babel-csharp-default-target-framework version)))
 
