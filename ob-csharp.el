@@ -139,6 +139,8 @@ See `org-babel-default-header-args:csharp' for available parameters."
          (namespace (make-temp-name "obcs"))
          (usings (alist-get :usings params)))
     (with-temp-buffer
+      (when (alist-get :prologue params)
+        (insert (alist-get :prologue params)))
       (insert "namespace " namespace ";\n")
       (when usings
         (insert (format "\n%s\n" (org-babel--csharp-format-usings usings))))
@@ -156,6 +158,8 @@ See `org-babel-default-header-args:csharp' for available parameters."
         (insert "\n}"))
       (when class
         (insert "\n}"))
+      (when (alist-get :epilogue params)
+        (insert (alist-get :epilogue params)))
       (buffer-string))))
 
 (defun org-babel--csharp-format-refs (refs)
