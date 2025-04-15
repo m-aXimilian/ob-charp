@@ -214,5 +214,40 @@
      (should (string= "{\n  \"TheInt\": 12,\n  \"TheString\": \"ok\"\n}\n"
                       (org-babel-execute-src-block))))))
 
+(ert-deftest test-ob-csharp/prologue-and-epilouge-expanded ()
+  "Check if prologue and epilogue are written plain to start and end of the expanded block."
+  (with-newest-dotnet
+   (org-test-with-temp-text "#+begin_src csharp :prologue \"// File header\" :epilogue \"// file ends here\"
+  Console.WriteLine(\"ok\");
+#+end_src"
+     (let ((block-expand (org-babel-expand-src-block)))
+       (should (string= (substring block-expand 0 14) "// File header"))
+       (should (string= (substring block-expand -17) "// file ends here"))))))
+
+(ert-deftest test-ob-csharp/additional-project-flags-fails-with-invalid-syntax ()
+  "Compilation fails when the `org-babel-csharp-additional-project-flags' is not xml formatted."
+  (with-newest-dotnet
+   (unwind-protect
+       (progn
+         (setq org-babel-csharp-additional-project-flags "somegarbage/>")
+         (org-test-with-temp-text "#+begin_src csharp
+  Console.WriteLine(\"ok\");
+#+end_src"
+           (should (eq nil (org-babel-execute-src-block)))))
+     (setq org-babel-csharp-additional-project-flags nil))))
+
+(ert-deftest test-ob-csharp/additional-project-flags-executes-with-xml-syntax ()
+  "Compilation succeeds when the `org-babel-csharp-additional-project-flags' is xml formatted."
+  (with-newest-dotnet
+   (unwind-protect
+       (progn
+         (setq org-babel-csharp-additional-project-flags "<LangVersion>latest</LangVersion>")
+         (org-test-with-temp-text "#+begin_src csharp
+  Console.WriteLine(\"ok\");
+#+end_src"
+           (should (string= "ok"
+                            (org-babel-execute-src-block)))))
+     (setq org-babel-csharp-additional-project-flags nil))))
+
 (provide 'test-ob-csharp)
 ;;; test-ob-csharp.el ends here

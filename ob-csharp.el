@@ -50,7 +50,7 @@
 (defun org-babel--csharp-default-compile-command (dir-proj-sln bin-dir)
   "Construct the default compilation command for C#.
 
-DIR-PROJ-SLN is either a directory containing a '.csproj' or '.sln' file
+DIR-PROJ-SLN is either a directory containing a \".csproj\" or \".sln\" file
 or a full path to either of these.
 BIN-DIR is the directory for the compiled output."
   (format "%s build --output %S %S"
@@ -59,20 +59,20 @@ BIN-DIR is the directory for the compiled output."
 (defun org-babel--csharp-default-restore-command (project-file)
   "Construct the default restore command for C# projects.
 
-PROJECT-FILE is a path to a '.csproj' file on which the restore command
+PROJECT-FILE is a path to a \".csproj\" file on which the restore command
 takes effect."
   (format "%s restore %S" org-babel-csharp-compiler project-file))
 
 (defcustom org-babel-csharp-compiler "dotnet"
   "The program to call for compiling a csharp project."
   :group 'org-babel
-  :package-version '(Org. "9.7")
+  :package-version '(Org. "9.8")
   :type 'string)
 
 (defcustom org-babel-csharp-default-target-framework "net7.0"
   "The desired target framework to use."
   :group 'org-babel
-  :package-version '(Org. "9.7")
+  :package-version '(Org. "9.8")
   :type 'string)
 
 (defcustom org-babel-csharp-generate-compile-command
@@ -82,7 +82,7 @@ takes effect."
 It must take two parameters intended for the target binary directory and
 a .sln file, .csproj file, or a base directory where either can be found."
   :group 'org-babel
-  :package-version '(Org. "9.7")
+  :package-version '(Org. "9.8")
   :type 'function)
 
 (defcustom org-babel-csharp-generate-restore-command
@@ -91,11 +91,11 @@ a .sln file, .csproj file, or a base directory where either can be found."
 
 It must take one parameter defining the project to perform a restore on."
   :group 'org-babel
-  :package-version '(Org. "9.7")
+  :package-version '(Org. "9.8")
   :type 'function)
 
 (defvar org-babel-csharp-additional-project-flags nil
-  "Will be passed in the 'PropertyGroup' defining the project.
+  "Will be passed in the \"PropertyGroup\" defining the project.
 
 This is taken as-is. It should be a string in XML-format.")
 
@@ -140,7 +140,7 @@ See `org-babel-default-header-args:csharp' for available parameters."
          (usings (alist-get :usings params)))
     (with-temp-buffer
       (when (alist-get :prologue params)
-        (insert (alist-get :prologue params)))
+        (insert (alist-get :prologue params) "\n"))
       (insert "namespace " namespace ";\n")
       (when usings
         (insert (format "\n%s\n" (org-babel--csharp-format-usings usings))))
@@ -159,7 +159,7 @@ See `org-babel-default-header-args:csharp' for available parameters."
       (when class
         (insert "\n}"))
       (when (alist-get :epilogue params)
-        (insert (alist-get :epilogue params)))
+        (insert "\n" (alist-get :epilogue params)))
       (buffer-string))))
 
 (defun org-babel--csharp-format-refs (refs)
