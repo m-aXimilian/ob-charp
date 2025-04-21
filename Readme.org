@@ -63,8 +63,6 @@ There are a few global variable that will have effect on *every* C# code block.
 You might want to reset some of these variables to their defaults in case you need different, or default, configuration in subsequent code blocks.
 
 ** Header arguments
-- =:dir= :: a (possibly relative) directory where the code generation and build output will be written to.
-
 - =:main= :: defines whether or not to wrap the code block's content in a default ~void Main(string[] args)~ function. The default is ="yes"=; you can set it to ~"no"~ to inhibit automatic main-function wrapping.
 
 - =:nugetconfig= :: path to a custom /NuGet.config/ file to use for the code block. This is useful if you have a local *.nupkg or a feed different from [[nuget.org]] and want to use it in your source block.
