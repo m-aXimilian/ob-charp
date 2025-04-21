@@ -204,9 +204,32 @@
      (should (string= "{\n  \"TheInt\": 12,\n  \"TheString\": \"ok\"\n}\n"
                       (org-babel-execute-src-block))))))
 
+(ert-deftest test-ob-csharp/respects-custom-nuget-config ()
+    "Check that the provided NuGet.config is taken into account when evaluating a source block."
+    (test-ob-csharp-with-newest-dotnet
+     (let ((nugetconf (make-temp-file "nuget")))
+       (unwind-protect
+           (progn
+             (with-temp-buffer
+               (insert "<?xml version=\"1.0\" encoding=\"utf-8\"?>
+  <configuration>
+      <packageSources>
+          <clear />
+          <add key=\"local\" value=\"./local_packages\" />
+      </packageSources>
+  </configuration>")
+               (write-file nugetconf))
+             (org-test-with-temp-text (format "#+begin_src csharp :references '((\"Newtonsoft.Json\" . \"13.0.3\")) :usings '(\"Newtonsoft.Json.Linq\") :nugetconfig %S :results raw
+    var js = JObject.Parse(\"{\\\"TheInt\\\": 12, \\\"TheString\\\": \\\"ok\\\"}\");
+    Console.Write(js);
+  ,#+end_src" nugetconf)
+               (message nugetconf)
+               (should-error (org-babel-execute-src-block))))
+         (delete-file nugetconf)))))
+
 (ert-deftest test-ob-csharp/prologue-and-epilouge-expanded ()
   "Check if prologue and epilogue are written plain to start and end of the expanded block."
-  (with-newest-dotnet
+  (test-ob-csharp-with-newest-dotnet
    (org-test-with-temp-text "#+begin_src csharp :prologue \"// File header\" :epilogue \"// file ends here\"
   Console.WriteLine(\"ok\");
 #+end_src"
