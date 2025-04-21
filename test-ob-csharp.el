@@ -237,7 +237,6 @@
     var js = JObject.Parse(\"{\\\"TheInt\\\": 12, \\\"TheString\\\": \\\"ok\\\"}\");
     Console.Write(js);
   ,#+end_src" nugetconf)
-                (message nugetconf)
                 (should-error (org-babel-execute-src-block))))
           (delete-file nugetconf)))))
 
