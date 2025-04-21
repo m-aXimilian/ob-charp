@@ -265,5 +265,18 @@
                             (org-babel-execute-src-block)))))
      (setq org-babel-csharp-additional-project-flags nil))))
 
+;; requires at least 2 dotnet frameworks installed
+(ert-deftest test-ob-csharp/same-result-with-different-frameworks ()
+  (ert--skip-when (< (length (test-ob-csharp--find-dotnet-version)) 1))
+  (let* ((src-result (lambda (v) (org-test-with-temp-text
+                                     (format "#+begin_src csharp :framework \"net%s.0\"
+  Console.WriteLine(\"ok\");
+#+end_src" v)
+                                   (org-babel-execute-src-block))))
+         (res-first  (funcall src-result (first (test-ob-csharp--find-dotnet-version))))
+         (res-second (funcall src-result (second (test-ob-csharp--find-dotnet-version)))))
+    (should (string= res-first res-second))))
+
+
 (provide 'test-ob-csharp)
 ;;; test-ob-csharp.el ends here
