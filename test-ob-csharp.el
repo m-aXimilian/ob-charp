@@ -267,7 +267,7 @@
 
 ;; requires at least 2 dotnet frameworks installed
 (ert-deftest test-ob-csharp/same-result-with-different-frameworks ()
-  (ert--skip-when (< (length (test-ob-csharp--find-dotnet-version)) 1))
+  (ert--skip-when (< (length (test-ob-csharp--find-dotnet-version)) 2))
   (let* ((src-result (lambda (v) (org-test-with-temp-text
                                      (format "#+begin_src csharp :framework \"net%s.0\"
   Console.WriteLine(\"ok\");
