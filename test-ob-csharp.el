@@ -31,14 +31,15 @@
          (binary "/tmp/placeholder/bin")
          (default-command (funcall org-babel-csharp-generate-compile-command project binary))
          (cmd-backup org-babel-csharp-generate-compile-command))
-    (setq org-babel-csharp-generate-compile-command custom-fun)
-    (should-not (string=
-                 default-command
-                 (funcall org-babel-csharp-generate-compile-command project binary)))
-    (should (string= (funcall custom-fun project binary)
-                     (funcall org-babel-csharp-generate-compile-command project binary)))
-    ;; reset customized variable
-    (setq org-babel-csharp-generate-compile-command cmd-backup)))
+    (unwind-protect
+        (progn
+          (setq org-babel-csharp-generate-compile-command custom-fun)
+          (should-not (string=
+                       default-command
+                       (funcall org-babel-csharp-generate-compile-command project binary)))
+          (should (string= (funcall custom-fun project binary)
+                           (funcall org-babel-csharp-generate-compile-command project binary))))
+      (setq org-babel-csharp-generate-compile-command cmd-backup))))
 
 (ert-deftest test-ob-csharp/customized-restore-command-used ()
   "User specified compile command is used."
