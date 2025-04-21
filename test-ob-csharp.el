@@ -86,11 +86,13 @@
 
 (defun test-ob-csharp--find-dotnet-version ()
   "Get a list of dotnet major versions from a list of dotnet sdks."
-  (mapcar #'(lambda (n)
-              (let ((fr (string-match "^[0-9.]+\\." n))
-                    (to (string-match "\\." n)))
-                (string-to-number (substring n fr to))))
-          (split-string (shell-command-to-string (format "%s --list-sdks" org-babel-csharp-compiler)) "\n")))
+  (delete-if #'(lambda (v) (= 0 v))
+             (delete-dups
+              (mapcar #'(lambda (n)
+                          (let ((fr (string-match "^[0-9.]+\\." n))
+                                (to (string-match "\\." n)))
+                            (string-to-number (substring n fr to))))
+                      (split-string (shell-command-to-string (format "%s --list-sdks" org-babel-csharp-compiler)) "\n")))))
 
 (defvar test-ob-csharp-system-dotnet-version (format "net%s.0" (apply #'max (test-ob-csharp--find-dotnet-version)))
   "The most recent dotnet version of the host system.")
