@@ -38,7 +38,7 @@
 
 ;; default header arguments for C#
 (defvar org-babel-default-header-args:csharp
-  '((main . ((yes no)))
+  '((main . ((no)))
     (nugetconfig . :any)
     (framework . :any)
     (class . ((no nil :any)))
