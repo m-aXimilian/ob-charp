@@ -83,7 +83,7 @@
 ;; requires dotnet compiler
 (org-test-for-executable org-babel-csharp-compiler)
 
-(defun with-find-dotnet-version ()
+(defun test-ob-csharp--find-dotnet-version ()
   "Get a list of dotnet major versions from a list of dotnet sdks."
   (mapcar #'(lambda (n)
               (let ((fr (string-match "^[0-9.]+\\." n))
@@ -91,23 +91,18 @@
                 (string-to-number (substring n fr to))))
           (split-string (shell-command-to-string (format "%s --list-sdks" org-babel-csharp-compiler)) "\n")))
 
-(defvar system-dotnet-version (format "net%s.0" (apply #'max (with-find-dotnet-version)))
+(defvar test-ob-csharp-system-dotnet-version (format "net%s.0" (apply #'max (test-ob-csharp--find-dotnet-version)))
   "The most recent dotnet version of the host system.")
 
-(defun with-try-set-dotnet-version (version)
-  "Set the default framework version."
-  (when version
-    (setq org-babel-csharp-default-target-framework version)))
-
-(defmacro with-newest-dotnet (&rest body)
+(defmacro test-ob-csharp-with-newest-dotnet (&rest body)
   "Set the most recent dotnet version in context."
   `(progn
-     (with-try-set-dotnet-version system-dotnet-version)
+     (setq org-babel-csharp-default-target-framework test-ob-csharp-system-dotnet-version)
      ,@body))
 
 (ert-deftest test-ob-csharp/int-from-var ()
   "Test of an integer variable."
-  (with-newest-dotnet
+  (test-ob-csharp-with-newest-dotnet
    (org-test-with-temp-text "#+begin_src csharp :var i=42 :results silent
   Console.WriteLine(i);
 #+end_src"
@@ -115,7 +110,7 @@
 
 (ert-deftest test-ob-csharp/float-from-var ()
   "Test of a float variable."
-  (with-newest-dotnet
+  (test-ob-csharp-with-newest-dotnet
    (org-test-with-temp-text "#+begin_src csharp :var f=3.14 :results silent
   Console.WriteLine(f);
 #+end_src"
@@ -123,7 +118,7 @@
 
 (ert-deftest test-ob-csharp/string-from-var ()
   "Test of a string variable."
-  (with-newest-dotnet
+  (test-ob-csharp-with-newest-dotnet
    (org-test-with-temp-text "#+begin_src csharp :var s=\"pi\" :results silent
   Console.WriteLine(s);
 #+end_src"
@@ -131,7 +126,7 @@
 
 (ert-deftest test-ob-csharp/outputs-list ()
   "Test list output."
-  (with-newest-dotnet
+  (test-ob-csharp-with-newest-dotnet
    (org-test-with-temp-text "#+begin_src csharp :results raw list silent
   Console.WriteLine(\"Item 1\");
   Console.WriteLine(\"Item 2\");
@@ -142,7 +137,7 @@
 
 (ert-deftest test-ob-csharp/commandline-input ()
   "Test command line input."
-  (with-newest-dotnet
+  (test-ob-csharp-with-newest-dotnet
    (org-test-with-temp-text "#+begin_src csharp :cmdline 3 :usings '(\"System\" \"System.Text\") :results silent
   int argInt = 0;
   Int32.TryParse(args[0], out argInt);
@@ -153,7 +148,7 @@
 
 (ert-deftest test-ob-csharp/custom-class-and-main ()
   "Test custom class with custom main function."
-  (with-newest-dotnet
+  (test-ob-csharp-with-newest-dotnet
    (org-test-with-temp-text "#+begin_src csharp :class no :main no :results silent
   internal class ClassA
   {
@@ -179,7 +174,7 @@
 
 (ert-deftest test-ob-csharp/tabular-format-output ()
   "Test for tabular output format."
-  (with-newest-dotnet
+  (test-ob-csharp-with-newest-dotnet
    (org-test-with-temp-text "#+begin_src csharp :results table silent
   Console.WriteLine($\"In, questo, mondo, una, cosa\");
   Console.WriteLine($\"si, perde,  una,   si, trova\");
@@ -190,7 +185,7 @@
 
 (ert-deftest test-ob-csharp/nuget-reference ()
   "Test with nuget reference."
-  (with-newest-dotnet
+  (test-ob-csharp-with-newest-dotnet
    (org-test-with-temp-text "#+begin_src csharp :references '((\"Newtonsoft.Json\" . \"13.0.3\")) :usings '(\"System\" \"Newtonsoft.Json\") :main no :project \"json-test\" :results verbatim silent
   public class DTO
   {
@@ -221,7 +216,7 @@
 
 (ert-deftest test-ob-csharp/additional-project-flags-fails-with-invalid-syntax ()
   "Compilation fails when the `org-babel-csharp-additional-project-flags' is not xml formatted."
-  (with-newest-dotnet
+  (test-ob-csharp-with-newest-dotnet
    (unwind-protect
        (progn
          (setq org-babel-csharp-additional-project-flags "somegarbage/>")
@@ -233,7 +228,7 @@
 
 (ert-deftest test-ob-csharp/additional-project-flags-executes-with-xml-syntax ()
   "Compilation succeeds when the `org-babel-csharp-additional-project-flags' is xml formatted."
-  (with-newest-dotnet
+  (test-ob-csharp-with-newest-dotnet
    (unwind-protect
        (progn
          (setq org-babel-csharp-additional-project-flags "<LangVersion>latest</LangVersion>")
