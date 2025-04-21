@@ -81,6 +81,26 @@
   (should-error (org-babel--csharp-format-usings '("namespaceA" nil "namesaceB")))
   (should-error (org-babel--csharp-format-usings "singleUsing")))
 
+(ert-deftest test-ob-csharp/prologue-and-epilouge-expanded ()
+  "Check if prologue and epilogue are written plain to start and end of the expanded block."
+  (test-ob-csharp-with-newest-dotnet
+   (org-test-with-temp-text "#+begin_src csharp :prologue \"// File header\" :epilogue \"// file ends here\"
+  Console.WriteLine(\"ok\");
+#+end_src"
+     (let ((block-expand (org-babel-expand-src-block)))
+       (should (string= (substring block-expand 0 14) "// File header"))
+       (should (string= (substring block-expand -17) "// file ends here"))))))
+
+(ert-deftest test-ob-csharp/custom-class-name-header-argument ()
+  "The generated class name "
+  (let ((cs-block (org-test-with-temp-text
+                      "#+begin_src csharp :class \"MyAwesomeClass\"
+  Console.WriteLine(\"ok\");
+#+end_src"
+                    (org-babel-expand-src-block))))
+    (should     (string-search "class MyAwesomeClass" cs-block))
+    (should-not (string-search "class Program" cs-block))))
+
 ;; requires dotnet compiler
 (org-test-for-executable org-babel-csharp-compiler)
 
@@ -230,16 +250,6 @@
                (should-error (org-babel-execute-src-block))))
          (delete-file nugetconf)))))
 
-(ert-deftest test-ob-csharp/prologue-and-epilouge-expanded ()
-  "Check if prologue and epilogue are written plain to start and end of the expanded block."
-  (test-ob-csharp-with-newest-dotnet
-   (org-test-with-temp-text "#+begin_src csharp :prologue \"// File header\" :epilogue \"// file ends here\"
-  Console.WriteLine(\"ok\");
-#+end_src"
-     (let ((block-expand (org-babel-expand-src-block)))
-       (should (string= (substring block-expand 0 14) "// File header"))
-       (should (string= (substring block-expand -17) "// file ends here"))))))
-
 (ert-deftest test-ob-csharp/additional-project-flags-fails-with-invalid-syntax ()
   "Compilation fails when the `org-babel-csharp-additional-project-flags' is not xml formatted."
   (test-ob-csharp-with-newest-dotnet
@@ -266,7 +276,7 @@
      (setq org-babel-csharp-additional-project-flags nil))))
 
 ;; requires at least 2 dotnet frameworks installed
-(ert-deftest test-ob-csharp/same-result-with-different-frameworks ()
+(ert-deftest test-ob-csharp/framework-header-is-configurable ()
   (ert--skip-when (< (length (test-ob-csharp--find-dotnet-version)) 2))
   (let* ((src-result (lambda (v) (org-test-with-temp-text
                                      (format "#+begin_src csharp :framework \"net%s.0\"
@@ -275,7 +285,10 @@
                                    (org-babel-execute-src-block))))
          (res-first  (funcall src-result (first (test-ob-csharp--find-dotnet-version))))
          (res-second (funcall src-result (second (test-ob-csharp--find-dotnet-version)))))
-    (should (string= res-first res-second))))
+    (should (string= res-first "ok"))
+    (should (string= res-second "ok"))
+    (should (string= res-first res-second))
+    (should (eq nil (funcall src-result "nonexisting")))))
 
 
 (provide 'test-ob-csharp)
