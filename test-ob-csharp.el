@@ -110,9 +110,12 @@
 (defmacro test-ob-csharp-with-newest-dotnet (&rest body)
   "Set the most recent dotnet version in context."
   (declare (indent 1))
-  `(progn
-     (setq org-babel-csharp-default-target-framework test-ob-csharp-system-dotnet-version)
-     ,@body))
+  `(let ((reset-framework ,org-babel-csharp-default-target-framework))
+     (unwind-protect
+         (progn
+           (setq org-babel-csharp-default-target-framework test-ob-csharp-system-dotnet-version)
+           ,@body)
+       (setq org-babel-csharp-default-target-framework reset-framework))))
 
 (ert-deftest test-ob-csharp/int-from-var ()
   "Test of an integer variable."
