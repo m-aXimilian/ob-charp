@@ -82,7 +82,7 @@
   (should-error (org-babel--csharp-format-usings "singleUsing")))
 
 (ert-deftest test-ob-csharp/custom-class-name-header-argument ()
-  "The generated class name "
+  "The generated class name matches the provided string or defaults to \"Program\"."
   (let ((cs-block (org-test-with-temp-text
                       "#+begin_src csharp :class \"MyAwesomeClass\"
   Console.WriteLine(\"ok\");

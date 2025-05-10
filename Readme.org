@@ -20,15 +20,6 @@
   </div>
 #+end_export
 
-* TODO Todos [7/7]                                               :noexport:
-- [X] write a requirements and setup section
-- [X] fetch installed .NET SDKs from the system to check/fill ~org-babel-csharp-target-framework~ appropriate to the system -> future tbd
-- [X] check if dotnet is installed -> made a requirement
-- [X] make use of the ~:dir~ header argument to set the compile output of the code blocks
-- [X] is ~:project-type~ necessary? -> not really, as it is an implicit information based on ~:main~ (and ~:class~)?
-- [X] implement the elisp->csharp parser
-- [X] write an examples section
-
 * Introduction
 Babel can compile and evaluate C# code blocks with this module. It is different from [[https://git.sr.ht/~bzg/org-contrib/tree/master/item/lisp/ob-csharp.el][ob-csharp in org-contrib]] in that it allows for significantly more complex setups, which is outlined in the following.
 A C# code-block
@@ -63,7 +54,7 @@ There are a few global variable that will have effect on *every* C# code block.
 You might want to reset some of these variables to their defaults in case you need different, or default, configuration in subsequent code blocks.
 
 ** Header arguments
-- =:main= :: defines whether or not to wrap the code block's content in a default ~void Main(string[] args)~ function. The default is ="yes"=; you can set it to ~"no"~ to inhibit automatic main-function wrapping.
+- =:main= :: defines whether or not to wrap the code block's content in a default ~void Main(string[] args)~ function. Anything other than ~"no"~ (including no =:main= argument at all) as a value for this argument will result in wrapping the code block in a ~Main~ function when expanding.
 
 - =:nugetconfig= :: path to a custom /NuGet.config/ file to use for the code block. This is useful if you have a local *.nupkg or a feed different from [[nuget.org]] and want to use it in your source block.
 
