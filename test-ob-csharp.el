@@ -301,6 +301,25 @@
           (should (string= (substring block-expand 0 14) "// File header"))
           (should (string= (substring block-expand -17) "// file ends here"))))))
 
+(ert-deftest test-ob-csharp/additional-project-flags-are-respected ()
+  "User setting of `org-babel-csharp-additional-project-flags' is respected code block compilation."
+  (let ((block "#+begin_src csharp\nConsole.WriteLine(1);\n#+end_src")
+        (invalid-flags "<UserCustomPoperty>This is an invalid xml string (property not closed)")
+        (valid-flags "<Configuration>Release</Configuration>")
+        (project-flags-pred
+         (lambda (flags assertion)
+           (unwind-protect
+               (progn
+                 (setq org-babel-csharp-additional-project-flags flags)
+                 (eval assertion))
+             (setq org-babel-csharp-additional-project-flags nil)))))
+    (funcall
+     project-flags-pred invalid-flags
+     `(should-not (org-test-with-temp-text ,block (org-babel-execute-src-block))))
+    (funcall
+     project-flags-pred valid-flags
+     `(should (= 1 (org-test-with-temp-text ,block (org-babel-execute-src-block)))))))
+
 ;; requires at least 2 dotnet frameworks installed
 (ert-deftest test-ob-csharp/framework-header-is-configurable ()
   "Check for additional framework header arguments."

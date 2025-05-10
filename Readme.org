@@ -48,7 +48,7 @@ There are a few global variable that will have effect on *every* C# code block.
   
 - =org-babel-csharp-default-target-framework= :: depending on the installed .NET SDKs (get a list by calling ~dotnet --list-sdks~), this variable can be set as desired. It will be used as the default when no ~:framework~ header argument was given.
 
-- =org-babel-csharp-additinal-projcect-flags= :: if the default "minimal viable" csproj configuration does not fit your needs, you can add arbitrary additional configuration here. When not ~nil~ it will be put in it's own ~PropertyGroup~ section of the csproj file. Note that it must be in "encoded" in a valid XML syntax as it will be used as-is.
+- =org-babel-csharp-additional-project-flags= :: if the default "minimal viable" csproj configuration does not fit your needs, you can add arbitrary additional configuration here. When not ~nil~ it will be put in the main ~PropertyGroup~ section of the csproj file. Note that it must be in "encoded" in a valid XML syntax as it will be used as-is. You can for example set the build configuration of the code-block to /Release/ with ~(setq org-babel-csharp-additional-project-flags "<Configuration>Release</Configuration>")~
 
 
 You might want to reset some of these variables to their defaults in case you need different, or default, configuration in subsequent code blocks.
