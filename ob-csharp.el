@@ -222,7 +222,6 @@ This function is called by `org-babel-execute-src-block'"
          (result-type (assq :result-type params))
          (full-body (org-babel-expand-body:csharp body params))
          (project-name  (make-temp-name "obcs"))
-         (dir-param (alist-get :dir params))
          (base-dir (file-name-concat org-babel-temporary-directory
                                      project-name))
          (bin-dir (file-name-concat base-dir "bin"))
