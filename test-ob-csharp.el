@@ -91,6 +91,29 @@
     (should     (string-search "class MyAwesomeClass" cs-block))
     (should-not (string-search "class Program" cs-block))))
 
+(ert-deftest test-ob-csharp/custom-main-function-wrapping ()
+  "Lax main function wrapping works."
+  (let* ((dummy-block "#+begin_src csharp %s \nvar a = 1 + 1;\n#+end_src")
+         (disable-main-quote (org-test-with-temp-text
+                                 (format dummy-block ":main \"no\"")
+                               (org-babel-expand-src-block)))
+         (disable-main-plain (org-test-with-temp-text
+                                 (format dummy-block ":main no")
+                               (org-babel-expand-src-block)))
+         (main-implicit (org-test-with-temp-text
+                            (format dummy-block "")
+                          (org-babel-expand-src-block)))
+         (main-explicit (org-test-with-temp-text
+                            (format dummy-block ":main anything")
+                          (org-babel-expand-src-block)))
+         (str-after-break (lambda (s) (substring s (+ 1 (string-search "\n" s)) -1))))
+    (should (equal (funcall str-after-break disable-main-plain) (funcall str-after-break disable-main-quote)))
+    (should (equal (funcall str-after-break main-implicit) (funcall str-after-break main-explicit)))
+    (should-not (string-search "static void Main" disable-main-quote))
+    (should-not (string-search "static void Main" disable-main-plain))
+    (should (string-search "static void Main" main-implicit))
+    (should (string-search "static void Main" main-explicit))))
+
 ;; requires dotnet compiler
 (org-test-for-executable org-babel-csharp-compiler)
 
