@@ -24,6 +24,8 @@
 (unless (featurep 'ob-csharp)
   (signal 'missing-test-dependency '("Support for C# code blocks")))
 
+(org-test-for-executable org-babel-csharp-compiler)
+
 (ert-deftest test-ob-csharp/customized-compile-command-used ()
   "User specified compile command is used."
   (let* ((custom-fun (lambda (p b) (format "custom-compiler %s %s" p b)))
@@ -60,26 +62,26 @@
 (ert-deftest test-ob-csharp/generate-project-file ()
   "Test intended parameterization of the project file generator."
   (should (eq 'string
-              (type-of (org-babel--csharp-generate-project-file nil "net6.0"))))
+              (type-of (org-babel-csharp--generate-project-file nil "net6.0"))))
   (should (eq 'string
-              (type-of (org-babel--csharp-generate-project-file '("a-ref") "net6.0"))))
+              (type-of (org-babel-csharp--generate-project-file '("a-ref") "net6.0"))))
   (should (eq 'string
-              (type-of (org-babel--csharp-generate-project-file '("a-ref" "b-ref") "net6.0"))))
-  (should-error (org-babel--csharp-generate-project-file nil nil))
-  (should-error (org-babel--csharp-generate-project-file nil nil))
-  (should-error (org-babel--csharp-generate-project-file '(nil) "net6.0"))
-  (should-error (org-babel--csharp-generate-project-file "a-ref" "net6.0")))
+              (type-of (org-babel-csharp--generate-project-file '("a-ref" "b-ref") "net6.0"))))
+  (should-error (org-babel-csharp--generate-project-file nil nil))
+  (should-error (org-babel-csharp--generate-project-file nil nil))
+  (should-error (org-babel-csharp--generate-project-file '(nil) "net6.0"))
+  (should-error (org-babel-csharp--generate-project-file "a-ref" "net6.0")))
 
 (ert-deftest test-ob-csharp/format-usings ()
   "Test intended parameterization of the C# using formatter."
   (should (string=
            "using namespaceA;\nusing namesaceB;"
-           (org-babel--csharp-format-usings '("namespaceA" "namesaceB"))))
+           (org-babel-csharp--format-usings '("namespaceA" "namesaceB"))))
   (should (string=
            ""
-           (org-babel--csharp-format-usings nil)))
-  (should-error (org-babel--csharp-format-usings '("namespaceA" nil "namesaceB")))
-  (should-error (org-babel--csharp-format-usings "singleUsing")))
+           (org-babel-csharp--format-usings nil)))
+  (should-error (org-babel-csharp--format-usings '("namespaceA" nil "namesaceB")))
+  (should-error (org-babel-csharp--format-usings "singleUsing")))
 
 (ert-deftest test-ob-csharp/custom-class-name-header-argument ()
   "The generated class name matches the provided string or defaults to \"Program\"."
@@ -114,20 +116,7 @@
     (should (string-search "static void Main" main-implicit))
     (should (string-search "static void Main" main-explicit))))
 
-;; requires dotnet compiler
-(org-test-for-executable org-babel-csharp-compiler)
-
-(defun test-ob-csharp--find-dotnet-version ()
-  "Get a list of dotnet major versions from a list of dotnet sdks."
-  (delete-if #'(lambda (v) (= 0 v))
-             (delete-dups
-              (mapcar #'(lambda (n)
-                          (let ((fr (string-match "^[0-9.]+\\." n))
-                                (to (string-match "\\." n)))
-                            (string-to-number (substring n fr to))))
-                      (split-string (shell-command-to-string (format "%s --list-sdks" org-babel-csharp-compiler)) "\n")))))
-
-(defvar test-ob-csharp-system-dotnet-version (format "net%s.0" (apply #'max (test-ob-csharp--find-dotnet-version)))
+(defvar test-ob-csharp-system-dotnet-version (format "net%s.0" (apply #'max (org-babel-csharp--find-dotnet-version)))
   "The most recent dotnet version of the host system.")
 
 (defmacro test-ob-csharp-with-newest-dotnet (&rest body)
@@ -323,14 +312,14 @@
 ;; requires at least 2 dotnet frameworks installed
 (ert-deftest test-ob-csharp/framework-header-is-configurable ()
   "Check for additional framework header arguments."
-  (ert--skip-when (< (length (test-ob-csharp--find-dotnet-version)) 2))
+  (ert--skip-when (< (length (org-babel-csharp--find-dotnet-version)) 2))
   (let* ((src-result (lambda (v) (org-test-with-temp-text
                                      (format "#+begin_src csharp :framework \"net%s.0\"
   Console.WriteLine(\"ok\");
 #+end_src" v)
                                    (org-babel-execute-src-block))))
-         (res-first  (funcall src-result (first (test-ob-csharp--find-dotnet-version))))
-         (res-second (funcall src-result (second (test-ob-csharp--find-dotnet-version)))))
+         (res-first  (funcall src-result (first (org-babel-csharp--find-dotnet-version))))
+         (res-second (funcall src-result (second (org-babel-csharp--find-dotnet-version)))))
     (should (string= res-first "ok"))
     (should (string= res-second "ok"))
     (should (string= res-first res-second))

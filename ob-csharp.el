@@ -47,7 +47,7 @@
     (cmdline . :any))
   "Csharp specific header arguments.")
 
-(defun org-babel--csharp-default-compile-command (dir-proj-sln bin-dir)
+(defun org-babel-csharp--default-compile-command (dir-proj-sln bin-dir)
   "Construct the default compilation command for C#.
 
 DIR-PROJ-SLN is either a directory containing a \".csproj\" or \".sln\" file
@@ -56,12 +56,25 @@ BIN-DIR is the directory for the compiled output."
   (format "%s build --output %S %S"
           org-babel-csharp-compiler bin-dir dir-proj-sln))
 
-(defun org-babel--csharp-default-restore-command (project-file)
+(defun org-babel-csharp--default-restore-command (project-file)
   "Construct the default restore command for C# projects.
 
 PROJECT-FILE is a path to a \".csproj\" file on which the restore command
 takes effect."
   (format "%s restore %S" org-babel-csharp-compiler project-file))
+
+(defun org-babel-csharp--find-dotnet-version ()
+  "Get a list of dotnet major versions from a list of dotnet sdks."
+  (delete-if #'(lambda (v) (= 0 v))
+             (delete-dups
+              (mapcar #'(lambda (n)
+                          (let ((fr (string-match "^[0-9.]+\\." n))
+                                (to (string-match "\\." n)))
+                            (string-to-number (substring n fr to))))
+                      (split-string
+                       (shell-command-to-string
+                        (format "%s --list-sdks" org-babel-csharp-compiler))
+                       "\n")))))
 
 (defcustom org-babel-csharp-compiler "dotnet"
   "The program to call for compiling a csharp project."
@@ -69,14 +82,15 @@ takes effect."
   :package-version '(Org. "9.8")
   :type 'string)
 
-(defcustom org-babel-csharp-default-target-framework "net7.0"
+(defcustom org-babel-csharp-default-target-framework
+  (format "net%s.0" (apply #'max (org-babel-csharp--find-dotnet-version)))
   "The desired target framework to use."
   :group 'org-babel
   :package-version '(Org. "9.8")
   :type 'string)
 
 (defcustom org-babel-csharp-generate-compile-command
-  #'org-babel--csharp-default-compile-command
+  #'org-babel-csharp--default-compile-command
   "A function creating the compile command.
 
 It must take two parameters intended for the target binary directory and
@@ -86,7 +100,7 @@ a .sln file, .csproj file, or a base directory where either can be found."
   :type 'function)
 
 (defcustom org-babel-csharp-generate-restore-command
-  #'org-babel--csharp-default-restore-command
+  #'org-babel-csharp--default-restore-command
   "A function creating a project restore command.
 
 It must take one parameter defining the project to perform a restore on."
@@ -94,18 +108,21 @@ It must take one parameter defining the project to perform a restore on."
   :package-version '(Org. "9.8")
   :type 'function)
 
-(defvar org-babel-csharp-additional-project-flags nil
+(defcustom org-babel-csharp-additional-project-flags nil
   "Will be passed in the \"PropertyGroup\" defining the project.
 
-This is taken as-is. It should be a string in XML-format.")
+This is taken as-is. It should be a string in XML-format."
+  :group 'org-babel
+  :package-version '(Org. "9.8")
+  :type 'string)
 
-(defun org-babel--csharp-generate-project-file (refs framework)
+(defun org-babel-csharp--generate-project-file (refs framework)
   "Construct a csproj file from a list of REFS for the target FRAMEWORK."
   (unless framework
     (error "framework cannot be nil"))
   (concat "<Project Sdk=\"Microsoft.NET.Sdk\">\n\n  "
           (when refs
-            (org-babel--csharp-format-refs refs))
+            (org-babel-csharp--format-refs refs))
           "\n\n  <PropertyGroup>"
           "\n    <OutputType>Exe</OutputType>\n"
           (format "\n    <TargetFramework>%s</TargetFramework>" framework)
@@ -116,7 +133,7 @@ This is taken as-is. It should be a string in XML-format.")
           "\n  </PropertyGroup>"
           "\n</Project>"))
 
-(defun org-babel--csharp-format-usings (usings)
+(defun org-babel-csharp--format-usings (usings)
   "Format USINGS into a string suitable for inclusion in a C# source file.
 
 USINGS should be a list of strings, each representing a using directive.
@@ -143,7 +160,7 @@ See `org-babel-default-header-args:csharp' for available parameters."
         (insert (alist-get :prologue params) "\n"))
       (insert "namespace " namespace ";\n")
       (when usings
-        (insert (format "\n%s\n" (org-babel--csharp-format-usings usings))))
+        (insert (format "\n%s\n" (org-babel-csharp--format-usings usings))))
       (when class
         (insert "\nclass " class "\n{\n"))
       (when main-p
@@ -162,7 +179,7 @@ See `org-babel-default-header-args:csharp' for available parameters."
         (insert "\n" (alist-get :epilogue params)))
       (buffer-string))))
 
-(defun org-babel--csharp-format-refs (refs)
+(defun org-babel-csharp--format-refs (refs)
   "Format REFS into a string suitable for inclusion in a .csproj file.
 
 REFS should be a list of strings or cons cells, each representing a reference.
@@ -243,7 +260,7 @@ This function is called by `org-babel-execute-src-block'"
     (with-temp-file project-file
       (insert
        (let ((refs (alist-get :references params)))
-         (org-babel--csharp-generate-project-file refs framework))))
+         (org-babel-csharp--generate-project-file refs framework))))
     (when (and nuget-file (file-exists-p (file-truename nuget-file)))
       (copy-file nuget-file (file-name-concat base-dir (file-name-nondirectory (file-truename nuget-file)))))
     ;; nuget restore
