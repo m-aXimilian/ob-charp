@@ -34,9 +34,9 @@ A C# code-block
 
 * Requirements and Setup
 A version of [[https://dotnet.microsoft.com/en-us/download][.NET]] should be installed on the host system that is executing the C# code blocks.
-Please make sure that the target framework configured in the variable ~org-babel-csharp-target-framework~ is available on your system. It currently defaults to "net7.0". If you don't have that, customize ~org-babel-csharp-target-framework~ to something that is installed like
+Please make sure that the target framework configured in the variable ~org-babel-csharp-default-target-framework~ is available on your system. Currently, this variable is set to the most recent discoverable .NET SDK found on the host system.
 #+begin_src elisp
-  (setf org-babel-csharp-target-framework "net8.0")
+  (setf org-babel-csharp-default-target-framework "net8.0")
 #+end_src
 
 
@@ -58,7 +58,7 @@ You might want to reset some of these variables to their defaults in case you ne
 
 - =:nugetconfig= :: path to a custom /NuGet.config/ file to use for the code block. This is useful if you have a local *.nupkg or a feed different from [[nuget.org]] and want to use it in your source block.
 
-- =:framework= :: the [[https://learn.microsoft.com/en-us/dotnet/standard/frameworks][target framework]] of the code block. See ~org-babel-csharp-target-framework~ for permanent configuration of this.
+- =:framework= :: the [[https://learn.microsoft.com/en-us/dotnet/standard/frameworks][target framework]] of the code block. See ~org-babel-csharp-default-target-framework~ for permanent configuration of this.
 
 - =:class= :: defines the name of the program wrapper class. It accepts string arguments. If left empty, it will use the default name ~Program~ as a program wrapper class name. A value of ~"no"~ will inhibit a wrapper class.
 
