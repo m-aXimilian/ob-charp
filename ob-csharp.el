@@ -117,7 +117,11 @@ This is taken as-is. It should be a string in XML-format."
   :type 'string)
 
 (defun org-babel-csharp--generate-project-file (refs framework)
-  "Construct a csproj file from a list of REFS for the target FRAMEWORK."
+  "Generate the file content to be used in a csproj-file.
+
+REFS is a list of references. Check `org-babel-csharp--format-refs' for
+the allowed semantics.
+FRAMEWORK is the target framework."
   (unless framework
     (error "framework cannot be nil"))
   (concat "<Project Sdk=\"Microsoft.NET.Sdk\">\n\n  "
