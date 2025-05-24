@@ -35,6 +35,7 @@ A C# code-block
 * Requirements and Setup
 A version of [[https://dotnet.microsoft.com/en-us/download][.NET]] should be installed on the host system that is executing the C# code blocks.
 Please make sure that the target framework configured in the variable ~org-babel-csharp-default-target-framework~ is available on your system. Currently, this variable is set to the most recent discoverable .NET SDK found on the host system.
+If that is not what you intend as a default, this variable can be configured e.g. like
 #+begin_src elisp
   (setf org-babel-csharp-default-target-framework "net8.0")
 #+end_src
@@ -46,7 +47,7 @@ There are a few global variable that will have effect on *every* C# code block.
 
 - =org-babel-csharp-compiler= :: sets the compiler that will be used to compile the code block's csproj file. Default is ~dotnet~.
   
-- =org-babel-csharp-default-target-framework= :: depending on the installed .NET SDKs (get a list by calling ~dotnet --list-sdks~), this variable can be set as desired. It will be used as the default when no ~:framework~ header argument was given.
+- =org-babel-csharp-default-target-framework= :: depending on the installed .NET SDKs (get a list by calling ~dotnet --list-sdks~), this variable can be set as desired. It will be used as the default when no ~:framework~ header argument was given. If not configured, the most recent discoverable version will be used.
 
 - =org-babel-csharp-additional-project-flags= :: if the default "minimal viable" csproj configuration does not fit your needs, you can add arbitrary additional configuration here. When not ~nil~ it will be put in the main ~PropertyGroup~ section of the csproj file. Note that it must be in "encoded" in a valid XML syntax as it will be used as-is. You can for example set the build configuration of the code-block to /Release/ with ~(setq org-babel-csharp-additional-project-flags "<Configuration>Release</Configuration>")~
 
