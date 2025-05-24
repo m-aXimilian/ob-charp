@@ -143,9 +143,9 @@ FRAMEWORK is the target framework."
 USINGS should be a list of strings, each representing a using directive.
 Returns a string with each using directive on a new line."
   (mapconcat
-   #'(lambda (u)
-       (unless (stringp u) (error "Usings must be of type string."))
-       (format "using %s;" u))
+   (lambda (u)
+     (unless (stringp u) (error "Usings must be of type string."))
+     (format "using %s;" u))
    usings "\n"))
 
 (defun org-babel-expand-body:csharp (body params)
@@ -157,7 +157,7 @@ See `org-babel-default-header-args:csharp' for available parameters."
                   ("no" nil)
                   (`nil "Program")
                   (t (alist-get :class params))))
-         (namespace (make-temp-name "obcs"))
+         (namespace "org.babel.autogen")
          (usings (alist-get :usings params)))
     (with-temp-buffer
       (when (alist-get :prologue params)
@@ -198,23 +198,22 @@ When a version is present, it will be treated as a package reference."
         (assemblyref)
         (systemref))
     (dolist (ref refs)
-      (let* ((version (pcase (type-of ref)
-                        ('cons (cdr ref))
-                        (_ nil)))
-             (ref-string (pcase (type-of ref)
-                           ('cons (car ref))
-                           (_ ref)))
+      (let* ((version (if (consp ref)
+                          (cdr ref)
+                        nil))
+             (ref-string (if (consp ref)
+                             (car ref)
+                           ref))
              (full-ref (if version
                            (file-truename (car ref))
-                         (file-truename ref)))
-             (use-fill-ref-p (file-exists-p full-ref)))
+                         (file-truename ref))))
         (cond
-         ((string-search ".csproj" full-ref)
+         ((string= "csproj" (file-name-extension full-ref))
           (setf projectref
                 (concat projectref
                         (format "\n    <ProjectReference Include=\"%s\" />"
                                 full-ref))))
-         ((string-search ".dll" full-ref)
+         ((string= "dll" (file-name-extension full-ref))
           (setf assemblyref
                 (concat assemblyref
                         (format "\n    <Reference Include=%S>\n      <HintPath>%s</HintPath>\n    </Reference>"
@@ -242,9 +241,8 @@ This function is called by `org-babel-execute-src-block'"
   (let* ((result-params (assq :result-params params))
          (result-type (assq :result-type params))
          (full-body (org-babel-expand-body:csharp body params))
-         (project-name  (make-temp-name "obcs"))
-         (base-dir (file-name-concat org-babel-temporary-directory
-                                     project-name))
+         (base-dir  (make-temp-name (file-name-concat org-babel-temporary-directory "obcs")))
+         (project-name (file-name-base base-dir))
          (bin-dir (file-name-concat base-dir "bin"))
          (framework (or (alist-get :framework params) org-babel-csharp-default-target-framework))
          (program-file (file-name-concat base-dir "Program.cs"))

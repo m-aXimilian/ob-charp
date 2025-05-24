@@ -80,6 +80,16 @@
   (should-error (org-babel-csharp--format-usings '("namespaceA" nil "namesaceB")))
   (should-error (org-babel-csharp--format-usings "singleUsing")))
 
+(ert-deftest test-ob-csharp/extension-based-reference-types ()
+  "Test if the references as supplied to the \"references\" header-arg are correctly parsed."
+  (let ((nuget-inp '(("Nugetref" . "0.0.1")))
+        (assembly-inp '("assembly.dll"))
+        (project-inp '("project.csropj")))
+    (should (string= (org-babel-csharp--format-refs nuget-inp) "\n\n  \n\n  <ItemGroup>\n    <PackageReference Include=\"Nugetref\" Version=\"0.0.1\" />\n  </ItemGroup>"))
+    (should (string-search "\n\n  <ItemGroup>\n    <Reference Include=\"assembly\">\n      <HintPath>"
+                           (org-babel-csharp--format-refs assembly-inp)))
+    (should (string= (org-babel-csharp--format-refs project-inp) "\n\n  \n\n  <ItemGroup>\n    <PackageReference Include=\"project.csropj\" />\n  </ItemGroup>"))
+    (should-error (org-babel-csharp--format-refs "not-a-list"))))
 (ert-deftest test-ob-csharp/custom-class-name-header-argument ()
   "The generated class name matches the provided string or defaults to \"Program\"."
   (let ((cs-block (org-test-with-temp-text
