@@ -83,7 +83,11 @@ takes effect."
   :type 'string)
 
 (defcustom org-babel-csharp-default-target-framework
-  (format "net%s.0" (apply #'max (org-babel-csharp--find-dotnet-version)))
+  (format "net%s.0"
+          (let ((net-sdks (org-babel-csharp--find-dotnet-version)))
+            (if net-sdks
+                (apply #'max net-sdks)
+              (error "No .NET SDK found. Consider installing one from https://dotnet.microsoft.com/en-us/download/visual-studio-sdks"))))
   "The desired target framework to use."
   :group 'org-babel
   :package-version '(Org. "9.8")
