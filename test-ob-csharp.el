@@ -123,69 +123,50 @@
     (should (string-search "static void Main" main-implicit))
     (should (string-search "static void Main" main-explicit))))
 
-(defvar test-ob-csharp-system-dotnet-version (format "net%s.0" (apply #'max (org-babel-csharp--find-dotnet-version)))
-  "The most recent dotnet version of the host system.")
-
-(defmacro test-ob-csharp-with-newest-dotnet (&rest body)
-  "Set the most recent dotnet version in context."
-  (declare (indent 1))
-  `(let ((reset-framework ,org-babel-csharp-default-target-framework))
-     (unwind-protect
-         (progn
-           (setq org-babel-csharp-default-target-framework test-ob-csharp-system-dotnet-version)
-           ,@body)
-       (setq org-babel-csharp-default-target-framework reset-framework))))
-
 (ert-deftest test-ob-csharp/int-from-var ()
   "Test of an integer variable."
-  (test-ob-csharp-with-newest-dotnet
-      (org-test-with-temp-text "#+begin_src csharp :var i=42 :results silent
+  (org-test-with-temp-text "#+begin_src csharp :var i=42 :results silent
   Console.WriteLine(i);
 #+end_src"
-        (should (= 42 (org-babel-execute-src-block))))))
+    (should (= 42 (org-babel-execute-src-block)))))
 
 (ert-deftest test-ob-csharp/float-from-var ()
   "Test of a float variable."
-  (test-ob-csharp-with-newest-dotnet
-      (org-test-with-temp-text "#+begin_src csharp :var f=3.14 :results silent
+  (org-test-with-temp-text "#+begin_src csharp :var f=3.14 :results silent
   Console.WriteLine(f);
 #+end_src"
-        (should (= 3.14 (org-babel-execute-src-block))))))
+    (should (= 3.14 (org-babel-execute-src-block)))))
 
 (ert-deftest test-ob-csharp/string-from-var ()
   "Test of a string variable."
-  (test-ob-csharp-with-newest-dotnet
       (org-test-with-temp-text "#+begin_src csharp :var s=\"pi\" :results silent
   Console.WriteLine(s);
 #+end_src"
-        (should (string= "pi" (org-babel-execute-src-block))))))
+        (should (string= "pi" (org-babel-execute-src-block)))))
 
 (ert-deftest test-ob-csharp/outputs-list ()
   "Test list output."
-  (test-ob-csharp-with-newest-dotnet
-      (org-test-with-temp-text "#+begin_src csharp :results raw list silent
+  (org-test-with-temp-text "#+begin_src csharp :results raw list silent
   Console.WriteLine(\"Item 1\");
   Console.WriteLine(\"Item 2\");
   Console.WriteLine(\"Item 3\");
   Console.WriteLine(\"Item 4\");
 #+end_src"
-        (should (equal "Item 1\nItem 2\nItem 3\nItem 4\n" (org-babel-execute-src-block))))))
+    (should (equal "Item 1\nItem 2\nItem 3\nItem 4\n" (org-babel-execute-src-block)))))
 
 (ert-deftest test-ob-csharp/commandline-input ()
   "Test command line input."
-  (test-ob-csharp-with-newest-dotnet
-      (org-test-with-temp-text "#+begin_src csharp :cmdline 3 :usings '(\"System\" \"System.Text\") :results silent
+  (org-test-with-temp-text "#+begin_src csharp :cmdline 3 :usings '(\"System\" \"System.Text\") :results silent
   int argInt = 0;
   Int32.TryParse(args[0], out argInt);
 
   Console.WriteLine(argInt * 14);
 #+end_src"
-        (should (= 42 (org-babel-execute-src-block))))))
+    (should (= 42 (org-babel-execute-src-block)))))
 
 (ert-deftest test-ob-csharp/custom-class-and-main ()
   "Test custom class with custom main function."
-  (test-ob-csharp-with-newest-dotnet
-      (org-test-with-temp-text "#+begin_src csharp :class no :main no :results silent
+  (org-test-with-temp-text "#+begin_src csharp :class no :main no :results silent
   internal class ClassA
   {
       public ClassA(int i)
@@ -206,23 +187,21 @@
       }
   }
 #+end_src"
-        (should (= 123 (org-babel-execute-src-block))))))
+    (should (= 123 (org-babel-execute-src-block)))))
 
 (ert-deftest test-ob-csharp/tabular-format-output ()
   "Test for tabular output format."
-  (test-ob-csharp-with-newest-dotnet
-      (org-test-with-temp-text "#+begin_src csharp :results table silent
+  (org-test-with-temp-text "#+begin_src csharp :results table silent
   Console.WriteLine($\"In, questo, mondo, una, cosa\");
   Console.WriteLine($\"si, perde,  una,   si, trova\");
 #+end_src"
-        (should (equal '(("In" "questo" "mondo" "una" "cosa")
-                         ("si" "perde" "una" "si" "trova"))
-                       (org-babel-execute-src-block))))))
+    (should (equal '(("In" "questo" "mondo" "una" "cosa")
+                     ("si" "perde" "una" "si" "trova"))
+                   (org-babel-execute-src-block)))))
 
 (ert-deftest test-ob-csharp/nuget-reference ()
   "Test with nuget reference."
-  (test-ob-csharp-with-newest-dotnet
-      (org-test-with-temp-text "#+begin_src csharp :references '((\"Newtonsoft.Json\" . \"13.0.3\")) :usings '(\"System\" \"Newtonsoft.Json\") :main no :project \"json-test\" :results verbatim silent
+  (org-test-with-temp-text "#+begin_src csharp :references '((\"Newtonsoft.Json\" . \"13.0.3\")) :usings '(\"System\" \"Newtonsoft.Json\") :main no :project \"json-test\" :results verbatim silent
   public class DTO
   {
       public int TheInt { get; set; }
@@ -237,12 +216,11 @@
       Console.WriteLine($\"{json}\");
   }
 #+end_src"
-        (should (string= "{\n  \"TheInt\": 12,\n  \"TheString\": \"ok\"\n}\n"
-                         (org-babel-execute-src-block))))))
+    (should (string= "{\n  \"TheInt\": 12,\n  \"TheString\": \"ok\"\n}\n"
+                     (org-babel-execute-src-block)))))
 
 (ert-deftest test-ob-csharp/respects-custom-nuget-config ()
   "Check that the provided NuGet.config is taken into account when evaluating a source block."
-  (test-ob-csharp-with-newest-dotnet
       (let ((nugetconf (make-temp-file "nuget")))
         (unwind-protect
             (progn
@@ -260,42 +238,39 @@
     Console.Write(js);
   ,#+end_src" nugetconf)
                 (should-error (org-babel-execute-src-block))))
-          (delete-file nugetconf)))))
+          (delete-file nugetconf))))
 
 (ert-deftest test-ob-csharp/additional-project-flags-fails-with-invalid-syntax ()
   "Compilation fails when the `org-babel-csharp-additional-project-flags' is not xml formatted."
-  (test-ob-csharp-with-newest-dotnet
-      (unwind-protect
-          (progn
-            (setq org-babel-csharp-additional-project-flags "somegarbage/>")
-            (org-test-with-temp-text "#+begin_src csharp
+  (unwind-protect
+      (progn
+        (setq org-babel-csharp-additional-project-flags "somegarbage/>")
+        (org-test-with-temp-text "#+begin_src csharp
   Console.WriteLine(\"ok\");
 #+end_src"
-              (should (eq nil (org-babel-execute-src-block)))))
-        (setq org-babel-csharp-additional-project-flags nil))))
+          (should (eq nil (org-babel-execute-src-block)))))
+    (setq org-babel-csharp-additional-project-flags nil)))
 
 (ert-deftest test-ob-csharp/additional-project-flags-executes-with-xml-syntax ()
   "Compilation succeeds when the `org-babel-csharp-additional-project-flags' is xml formatted."
-  (test-ob-csharp-with-newest-dotnet
-      (unwind-protect
-          (progn
-            (setq org-babel-csharp-additional-project-flags "<LangVersion>latest</LangVersion>")
-            (org-test-with-temp-text "#+begin_src csharp
+  (unwind-protect
+      (progn
+        (setq org-babel-csharp-additional-project-flags "<LangVersion>latest</LangVersion>")
+        (org-test-with-temp-text "#+begin_src csharp
   Console.WriteLine(\"ok\");
 #+end_src"
-              (should (string= "ok"
-                               (org-babel-execute-src-block)))))
-        (setq org-babel-csharp-additional-project-flags nil))))
+          (should (string= "ok"
+                           (org-babel-execute-src-block)))))
+    (setq org-babel-csharp-additional-project-flags nil)))
 
 (ert-deftest test-ob-csharp/prologue-and-epilouge-expanded ()
   "Check if prologue and epilogue are written plain to start and end of the expanded block."
-  (test-ob-csharp-with-newest-dotnet
-      (org-test-with-temp-text "#+begin_src csharp :prologue \"// File header\" :epilogue \"// file ends here\"
+  (org-test-with-temp-text "#+begin_src csharp :prologue \"// File header\" :epilogue \"// file ends here\"
   Console.WriteLine(\"ok\");
 #+end_src"
-        (let ((block-expand (org-babel-expand-src-block)))
-          (should (string= (substring block-expand 0 14) "// File header"))
-          (should (string= (substring block-expand -17) "// file ends here"))))))
+    (let ((block-expand (org-babel-expand-src-block)))
+      (should (string= (substring block-expand 0 14) "// File header"))
+      (should (string= (substring block-expand -17) "// file ends here")))))
 
 (ert-deftest test-ob-csharp/invalid-additional-project-flags-fail ()
   "An invalid setting in `org-babel-csharp-additional-project-flags' fails."
