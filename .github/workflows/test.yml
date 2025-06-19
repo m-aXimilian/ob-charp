@@ -23,12 +23,11 @@ jobs:
         sudo apt update
         sudo apt install emacs emacs-common
 
-    - name: Install .NET
-      run: |
-        sudo apt-get update
-        # Some tests require > 1 .NET SDK, so we install 2
-        sudo apt-get install -y dotnet-sdk-9.0
-        sudo apt-get install -y dotnet-sdk-8.0
+    - uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: |
+          '8.0.x'
+          '9.0.x'
 
     - name: Setup Test batch script
       run: 
