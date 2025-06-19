@@ -1,0 +1,8 @@
+(add-to-list 'load-path (file-truename "./"))
+(require 'ob-csharp)
+(require 'org-test)
+(require 'test-ob-csharp)
+(let ((confirmed-babel-langs (lambda (lang body)
+                               (not (or (string= lang "csharp"))))))
+  (setq org-confirm-babel-evaluate confirmed-babel-langs))
+(ert-run-tests-batch "test-ob-csharp")
