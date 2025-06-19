@@ -1,0 +1,53 @@
+name: Run ERT tests
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - dev
+      - master
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Update apt
+      run: sudo apt update 2> /dev/null
+
+    - name: Install emacs
+      run: |
+        sudo add-apt-repository ppa:ubuntuhandbook1/emacs
+        sudo apt update
+        sudo apt install emacs emacs-common
+
+    - name: Install .NET
+      run: |
+        sudo apt-get update
+        # Some tests require > 1 .NET SDK, so we install 2
+        sudo apt-get install -y dotnet-sdk-9.0
+        sudo apt-get install -y dotnet-sdk-8.0
+
+    - name: Setup Test batch script
+      run: 
+        cat > run-tests.el<<EOF
+        (add-to-list 'load-path (file-truename "./"))
+        (require 'ob-csharp)
+        (require 'org-test)
+        (require 'test-ob-csharp)
+        (let ((confirmed-babel-langs (lambda (lang body)
+                               (not (or
+                                     (string= lang "csharp"))))))
+          (setq org-confirm-babel-evaluate confirmed-babel-langs))
+        (ert-run-tests-batch "test-ob-csharp")
+        EOF
+
+    - name: Download Dependencies
+      run: |
+        curl -O https://raw.githubusercontent.com/bzg/org-mode/refs/heads/main/testing/org-test.el
+          
+    - name: Check config
+      run: |
+        emacs --batch --script run-tests.el
