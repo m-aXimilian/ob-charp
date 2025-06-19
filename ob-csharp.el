@@ -65,7 +65,7 @@ takes effect."
 
 (defun org-babel-csharp--find-dotnet-version ()
   "Get a list of dotnet major versions from a list of dotnet sdks."
-  (delete-if #'(lambda (v) (= 0 v))
+  (cl-delete-if #'(lambda (v) (= 0 v))
              (delete-dups
               (mapcar #'(lambda (n)
                           (let ((fr (string-match "^[0-9.]+\\." n))

@@ -301,8 +301,8 @@
   Console.WriteLine(\"ok\");
 #+end_src" v)
                                    (org-babel-execute-src-block))))
-         (res-first  (funcall src-result (first (org-babel-csharp--find-dotnet-version))))
-         (res-second (funcall src-result (second (org-babel-csharp--find-dotnet-version)))))
+         (res-first  (funcall src-result (car (org-babel-csharp--find-dotnet-version))))
+         (res-second (funcall src-result (cadr (org-babel-csharp--find-dotnet-version)))))
     (should (string= res-first "ok"))
     (should (string= res-second "ok"))
     (should (string= res-first res-second))
