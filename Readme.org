@@ -20,6 +20,8 @@
   </div>
 #+end_export
 
+*Note* this is a mirror of [[https://codeberg.org/buoso/csharp-babel][csharp-babel]].
+
 * Introduction
 Babel can compile and evaluate C# code blocks with this module. It is different from [[https://git.sr.ht/~bzg/org-contrib/tree/master/item/lisp/ob-csharp.el][ob-csharp in org-contrib]] in that it allows for significantly more complex setups, which is outlined in the following.
 A C# code-block

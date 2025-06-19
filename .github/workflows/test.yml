@@ -33,6 +33,6 @@ jobs:
       run: |
         curl -O https://raw.githubusercontent.com/bzg/org-mode/refs/heads/main/testing/org-test.el
           
-    - name: Check config
+    - name: Run Tests
       run: |
         emacs --batch --script run-tests.el
