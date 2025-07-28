@@ -85,9 +85,8 @@ takes effect."
 (defcustom org-babel-csharp-default-target-framework
   (format "net%s.0"
           (let ((net-sdks (org-babel-csharp--find-dotnet-version)))
-            (if net-sdks
-                (apply #'max net-sdks)
-              (error "No .NET SDK found. Consider installing one from https://dotnet.microsoft.com/en-us/download/visual-studio-sdks"))))
+            (when net-sdks
+                (apply #'max net-sdks))))
   "The desired target framework to use."
   :group 'org-babel
   :package-version '(Org. "9.8")
@@ -259,6 +258,8 @@ This function is called by `org-babel-execute-src-block'"
                                (file-truename project-file)
                                (file-truename bin-dir)))
          (run-cmd (format "%S %S" (file-truename (file-name-concat bin-dir project-name)) cmdline)))
+    (unless (org-babel-csharp--find-dotnet-version)
+      (error "Could not find a .NET SDK for compiling."))
     (unless (file-exists-p base-dir)
       (make-directory base-dir))
     (with-temp-file program-file

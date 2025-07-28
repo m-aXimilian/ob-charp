@@ -308,6 +308,16 @@
     (should (string= res-first res-second))
     (should (eq nil (funcall src-result "nonexisting")))))
 
+(ert-deftest test-ob-csharp/runtime-error-without-valid-dotnet-sdk ()
+  "Unless there is a valid dotnet SDK found, evaluating a csharp block fails."
+  (let ((advice (advice-add 'org-babel-csharp--find-dotnet-version :override #'(lambda () nil))))
+    (unwind-protect
+        (org-test-with-temp-text "#+begin_src csharp
+  Console.WriteLine(\"hi\");
+#+end_src"
+          (should-error (org-babel-execute-src-block)))
+      (advice-remove 'org-babel-csharp--find-dotnet-version advice))))
+
 
 (provide 'test-ob-csharp)
 ;;; test-ob-csharp.el ends here
