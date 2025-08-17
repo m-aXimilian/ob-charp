@@ -47,6 +47,12 @@
     (cmdline . :any))
   "Csharp specific header arguments.")
 
+(defcustom org-babel-csharp-compiler "dotnet"
+  "The program to call for compiling a csharp project."
+  :group 'org-babel
+  :package-version '(Org. "9.8")
+  :type 'string)
+
 (defun org-babel-csharp--default-compile-command (dir-proj-sln bin-dir)
   "Construct the default compilation command for C#.
 
@@ -75,12 +81,6 @@ takes effect."
                        (shell-command-to-string
                         (format "%s --list-sdks" org-babel-csharp-compiler))
                        "\n")))))
-
-(defcustom org-babel-csharp-compiler "dotnet"
-  "The program to call for compiling a csharp project."
-  :group 'org-babel
-  :package-version '(Org. "9.8")
-  :type 'string)
 
 (defcustom org-babel-csharp-default-target-framework
   (format "net%s.0"
@@ -159,7 +159,7 @@ See `org-babel-default-header-args:csharp' for available parameters."
          (class (pcase (alist-get :class params)
                   ("no" nil)
                   (`nil "Program")
-                  (t (alist-get :class params))))
+                  (_ (alist-get :class params))))
          (namespace "org.babel.autogen")
          (usings (alist-get :usings params)))
     (with-temp-buffer
@@ -172,12 +172,11 @@ See `org-babel-default-header-args:csharp' for available parameters."
         (insert "\nclass " class "\n{\n"))
       (when main-p
         (insert "static void Main(string[] args)\n{\n"))
-      (let ((start (point)))
-        (insert (if (alist-get :var params)
-                    (mapconcat #'identity (org-babel-variable-assignments:csharp params) "\n")
-                  "")
-                "\n")
-        (insert body))
+      (insert (if (alist-get :var params)
+                  (mapconcat #'identity (org-babel-variable-assignments:csharp params) "\n")
+                "")
+              "\n")
+      (insert body)
       (when main-p
         (insert "\n}"))
       (when class
@@ -190,12 +189,14 @@ See `org-babel-default-header-args:csharp' for available parameters."
   "Format REFS into a string suitable for inclusion in a .csproj file.
 
 REFS should be a list of strings or cons cells, each representing a reference.
-If an entry is a cons cell, the car is the reference name and the cdr is the version.
+If an entry is a cons cell, the car denotes the reference name and
+the cdr is the version.
 
 Returns a formatted string representing the references, categorized into
 project reference, assembly reference, and package reference.
 Reference types are distinguished by their file extension.
-'.csproj' is interpreted as a project reference, '.dll' as an assembly reference.
+'.csproj' is interpreted as a project reference,
+'.dll' as an assembly reference.
 When a version is present, it will be treated as a package reference."
   (let ((projectref)
         (assemblyref)
@@ -241,9 +242,7 @@ When a version is present, it will be treated as a package reference."
 (defun org-babel-execute:csharp (body params)
   "Execute a block of Csharp code with org-babel.
 This function is called by `org-babel-execute-src-block'"
-  (let* ((result-params (assq :result-params params))
-         (result-type (assq :result-type params))
-         (full-body (org-babel-expand-body:csharp body params))
+  (let* ((full-body (org-babel-expand-body:csharp body params))
          (base-dir  (make-temp-name (file-name-concat org-babel-temporary-directory "obcs")))
          (project-name (file-name-base base-dir))
          (bin-dir (file-name-concat base-dir "bin"))

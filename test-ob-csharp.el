@@ -19,10 +19,10 @@
 
 ;;; Code:
 
-(require 'ob-core)
-
 (unless (featurep 'ob-csharp)
   (signal 'missing-test-dependency '("Support for C# code blocks")))
+
+(require 'ob-core)
 
 (org-test-for-executable org-babel-csharp-compiler)
 
@@ -64,7 +64,6 @@
   (should (stringp (org-babel-csharp--generate-project-file nil "net6.0")))
   (should (stringp (org-babel-csharp--generate-project-file '("a-ref") "net6.0")))
   (should (stringp (org-babel-csharp--generate-project-file '("a-ref" "b-ref") "net6.0")))
-  (should-error (org-babel-csharp--generate-project-file nil nil))
   (should-error (org-babel-csharp--generate-project-file nil nil))
   (should-error (org-babel-csharp--generate-project-file '(nil) "net6.0"))
   (should-error (org-babel-csharp--generate-project-file "a-ref" "net6.0")))
@@ -310,13 +309,11 @@
 
 (ert-deftest test-ob-csharp/runtime-error-without-valid-dotnet-sdk ()
   "Unless there is a valid dotnet SDK found, evaluating a csharp block fails."
-  (let ((advice (advice-add 'org-babel-csharp--find-dotnet-version :override #'(lambda () nil))))
-    (unwind-protect
-        (org-test-with-temp-text "#+begin_src csharp
+  (cl-letf (((symbol-function 'org-babel-csharp--find-dotnet-version) #'ignore))
+    (org-test-with-temp-text "#+begin_src csharp
   Console.WriteLine(\"hi\");
 #+end_src"
-          (should-error (org-babel-execute-src-block)))
-      (advice-remove 'org-babel-csharp--find-dotnet-version advice))))
+      (should-error (org-babel-execute-src-block)))))
 
 
 (provide 'test-ob-csharp)
