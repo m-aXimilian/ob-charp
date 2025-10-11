@@ -59,7 +59,7 @@ You might want to reset some of these variables to their defaults in case you ne
 ** Header arguments
 - =:main= :: defines whether or not to wrap the code block's content in a default ~void Main(string[] args)~ function. Anything other than ~"no"~ (including no =:main= argument at all) as a value for this argument will result in wrapping the code block in a ~Main~ function when expanding.
 
-- =:nugetconfig= :: path to a custom /NuGet.config/ file to use for the code block. This is useful if you have a local *.nupkg or a feed different from [[nuget.org]] and want to use it in your source block.
+- =:nugetconfig= :: path to a custom /NuGet.config/ file to use for the code block. This is useful if you have a local *.nupkg or a feed different from [[https://www.nuget.org/][nuget.org]] and want to use it in your source block.
 
 - =:framework= :: the [[https://learn.microsoft.com/en-us/dotnet/standard/frameworks][target framework]] of the code block. See ~org-babel-csharp-default-target-framework~ for permanent configuration of this.
 
