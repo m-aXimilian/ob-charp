@@ -1,6 +1,6 @@
 ;;; ob-csharp.el --- org-babel functions for csharp evaluation -*- lexical-binding: t -*-
 
-;; Copyright (C) 2024-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2024-2026 Free Software Foundation, Inc.
 
 ;; Author:     Maximilian Kueffner
 ;; Maintainer: Maximilian Kueffner <poverobuosodonati@gmail.com>
@@ -51,7 +51,8 @@
   "The program to call for compiling a csharp project."
   :group 'org-babel
   :package-version '(Org. "9.8")
-  :type 'string)
+  :type 'string
+  :risky t)
 
 (defun org-babel-csharp--default-compile-command (dir-proj-sln bin-dir)
   "Construct the default compilation command for C#.
@@ -86,11 +87,12 @@ takes effect."
   (format "net%s.0"
           (let ((net-sdks (org-babel-csharp--find-dotnet-version)))
             (when net-sdks
-                (apply #'max net-sdks))))
+              (apply #'max net-sdks))))
   "The desired target framework to use."
   :group 'org-babel
   :package-version '(Org. "9.8")
-  :type 'string)
+  :type 'string
+  :safe #'stringp)
 
 (defcustom org-babel-csharp-generate-compile-command
   #'org-babel-csharp--default-compile-command
@@ -100,7 +102,8 @@ It must take two parameters intended for the target binary directory and
 a .sln file, .csproj file, or a base directory where either can be found."
   :group 'org-babel
   :package-version '(Org. "9.8")
-  :type 'function)
+  :type 'function
+  :risky t)
 
 (defcustom org-babel-csharp-generate-restore-command
   #'org-babel-csharp--default-restore-command
@@ -109,7 +112,8 @@ a .sln file, .csproj file, or a base directory where either can be found."
 It must take one parameter defining the project to perform a restore on."
   :group 'org-babel
   :package-version '(Org. "9.8")
-  :type 'function)
+  :type 'function
+  :risky t)
 
 (defcustom org-babel-csharp-additional-project-flags nil
   "Will be passed in the \"PropertyGroup\" defining the project.
@@ -117,7 +121,8 @@ It must take one parameter defining the project to perform a restore on."
 This is taken as-is. It should be a string in XML-format."
   :group 'org-babel
   :package-version '(Org. "9.8")
-  :type 'string)
+  :type '(choice string (const nil))
+  :safe (lambda (x) (or (eq x nil) (stringp x))))
 
 (defun org-babel-csharp--generate-project-file (refs framework)
   "Generate the file content to be used in a csproj-file.
@@ -243,7 +248,11 @@ When a version is present, it will be treated as a package reference."
   "Execute a block of Csharp code with org-babel.
 This function is called by `org-babel-execute-src-block'"
   (let* ((full-body (org-babel-expand-body:csharp body params))
-         (base-dir  (make-temp-name (file-name-concat org-babel-temporary-directory "obcs")))
+         (base-dir  (make-temp-file
+                     (file-name-concat
+                      (org-babel-temp-directory)
+                      "obcs")
+                     t))
          (project-name (file-name-base base-dir))
          (bin-dir (file-name-concat base-dir "bin"))
          (framework (or (alist-get :framework params) org-babel-csharp-default-target-framework))
@@ -258,9 +267,7 @@ This function is called by `org-babel-execute-src-block'"
                                (file-truename bin-dir)))
          (run-cmd (format "%S %S" (file-truename (file-name-concat bin-dir project-name)) cmdline)))
     (unless (org-babel-csharp--find-dotnet-version)
-      (error "Could not find a .NET SDK for compiling."))
-    (unless (file-exists-p base-dir)
-      (make-directory base-dir))
+      (error "Could not find a .NET SDK for compiling"))
     (with-temp-file program-file
       (insert full-body))
     (with-temp-file project-file
